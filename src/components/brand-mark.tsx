@@ -7,7 +7,9 @@ export function BrandMark() {
         iW
       </span>
       <span>
-        <strong>iWarehouse</strong>
+        <strong>
+          <i>i</i>Warehouse
+        </strong>
         <small>Products</small>
       </span>
     </Link>

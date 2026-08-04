@@ -1,0 +1,103 @@
+/* Hallmark · iWarehouse orange/black design tokens
+ * Portable export of the system in src/app/globals.css.
+ *
+ * Vocabulary is shadcn-canonical: components consume the semantic layer
+ * (--primary, --muted-foreground, --border, --ring …). The brand and warm
+ * ramps are the source values and are not referenced by components directly.
+ *
+ * Contrast notes:
+ *   --primary-foreground on --primary .... 5.2:1  (AA normal text)
+ *   --primary on --background ............ 5.2:1  (AA normal text)
+ *   --muted-foreground on --background ... 5.9:1  (AA normal text)
+ *   --brand on --background .............. 3.1:1  (large display only)
+ */
+
+:root {
+  /* brand ramp — anchor #f26522, sampled from the iWarehouse logo */
+  --brand-50: #fff4ee;
+  --brand-100: #ffe3d2;
+  --brand-200: #fdc4a1;
+  --brand-300: #f99c68;
+  --brand-400: #f58043;
+  --brand-500: #f26522;
+  --brand-600: #d9520f;
+  --brand-700: #c2410c;
+  --brand-800: #99340a;
+  --brand-900: #6b2505;
+
+  /* warm neutral ramp — low chroma, hue-aligned to the accent */
+  --warm-50: #faf7f4;
+  --warm-100: #f3eee9;
+  --warm-200: #e8e2db;
+  --warm-300: #d6cec5;
+  --warm-400: #a99f94;
+  --warm-500: #7a7067;
+  --warm-600: #6e6259;
+  --warm-700: #4a423b;
+  --warm-800: #2a231d;
+  --warm-900: #16110d;
+
+  /* shadcn semantic layer */
+  --background: #ffffff;
+  --foreground: var(--warm-900);
+  --card: #ffffff;
+  --card-foreground: var(--warm-900);
+  --popover: #ffffff;
+  --popover-foreground: var(--warm-900);
+  --primary: var(--brand-700);
+  --primary-foreground: #ffffff;
+  --secondary: var(--warm-100);
+  --secondary-foreground: var(--warm-700);
+  --muted: var(--warm-100);
+  --muted-foreground: var(--warm-600);
+  --accent: var(--brand-50);
+  --accent-foreground: var(--brand-700);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: #ffffff;
+  --border: var(--warm-200);
+  --input: var(--warm-300);
+  --ring: var(--brand-500);
+  --radius: 0.625rem;
+
+  /* brand extras — no shadcn equivalent */
+  --canvas: var(--warm-50);
+  --brand: var(--brand-500);
+  --success: #15794f;
+  --success-soft: #eaf6f0;
+  --night: #14100c;
+  --night-copy: #c9bfb6;
+
+  /* decorative tint pairs — warm tonal ladder */
+  --tint-1-bg: #ffede0;
+  --tint-1-fg: #c2410c;
+  --tint-2-bg: #fbeadf;
+  --tint-2-fg: #9a4a16;
+  --tint-3-bg: #fff4e3;
+  --tint-3-fg: #a86410;
+  --tint-4-bg: #f4ede5;
+  --tint-4-fg: #6b4a2a;
+
+  /* shadows — warm-tinted */
+  --shadow-sm: 0 4px 15px rgba(38, 22, 10, 0.04);
+  --shadow: 0 18px 50px rgba(38, 22, 10, 0.09);
+  --shadow-lg: 0 42px 65px rgba(20, 12, 6, 0.26);
+  --shadow-brand: 0 8px 18px rgba(242, 101, 34, 0.22);
+  --shadow-raise: 0 15px 38px rgba(38, 22, 10, 0.1);
+  --shadow-float: 0 15px 35px rgba(38, 22, 10, 0.12);
+
+  /* translucent accents */
+  --brand-a08: rgba(242, 101, 34, 0.08);
+  --brand-a16: rgba(242, 101, 34, 0.16);
+  --brand-a20: rgba(242, 101, 34, 0.2);
+  --brand-a22: rgba(242, 101, 34, 0.22);
+  --brand-a34: rgba(242, 101, 34, 0.34);
+  --warm-a05: rgba(60, 35, 15, 0.045);
+  --border-a82: rgba(232, 226, 219, 0.82);
+  --orb-soft: rgba(255, 213, 184, 0.14);
+  --orb-ring: rgba(212, 82, 15, 0.16);
+  --glass-dark: rgba(30, 14, 4, 0.32);
+  --success-line: rgba(21, 121, 79, 0.14);
+
+  /* type — Manrope, bound to --font-sans so shadcn components inherit it */
+  --font-sans: var(--font-manrope), Arial, sans-serif;
+}

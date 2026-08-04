@@ -1,9 +1,21 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { CatalogFilters, CatalogQuery } from "@/lib/catalog/types";
 
 function selected(value: string | string[] | undefined): string {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
 }
+
+/**
+ * Native <select> on purpose. This panel is a server component and the form is
+ * a plain GET submit, so filtering works before any JS loads. Swapping in the
+ * Radix-based shadcn Select would force "use client" and break that.
+ * The class list below matches shadcn's Input so the controls read as one set.
+ */
+const selectClass =
+  "flex h-10 w-full min-w-0 appearance-none rounded-md border border-input bg-background px-3 py-1 text-[0.76rem] shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
 
 export function CatalogFilterForm({
   filters,
@@ -24,18 +36,24 @@ export function CatalogFilterForm({
         <Link href="/products">Clear all</Link>
       </div>
       <div className="field">
-        <label htmlFor="catalog-search">Search</label>
-        <input
+        <Label htmlFor="catalog-search">Search</Label>
+        <Input
           id="catalog-search"
           type="search"
           name="q"
           defaultValue={selected(values.q)}
           placeholder="Brand, model, color…"
+          className="h-10 text-[0.76rem]"
         />
       </div>
       <div className="field">
-        <label htmlFor="catalog-category">Category</label>
-        <select id="catalog-category" name="category" defaultValue={selected(values.category)}>
+        <Label htmlFor="catalog-category">Category</Label>
+        <select
+          id="catalog-category"
+          name="category"
+          defaultValue={selected(values.category)}
+          className={selectClass}
+        >
           <option value="">All categories</option>
           {filters.categories.map((category) => (
             <optgroup key={category.id} label={category.name}>
@@ -50,8 +68,13 @@ export function CatalogFilterForm({
         </select>
       </div>
       <div className="field">
-        <label htmlFor="catalog-brand">Brand</label>
-        <select id="catalog-brand" name="brand" defaultValue={selected(values.brand)}>
+        <Label htmlFor="catalog-brand">Brand</Label>
+        <select
+          id="catalog-brand"
+          name="brand"
+          defaultValue={selected(values.brand)}
+          className={selectClass}
+        >
           <option value="">All brands</option>
           {filters.brands.map((brand) => (
             <option value={brand.id} key={brand.id}>
@@ -61,8 +84,13 @@ export function CatalogFilterForm({
         </select>
       </div>
       <div className="field">
-        <label htmlFor="catalog-condition">Condition</label>
-        <select id="catalog-condition" name="condition" defaultValue={selected(values.condition)}>
+        <Label htmlFor="catalog-condition">Condition</Label>
+        <select
+          id="catalog-condition"
+          name="condition"
+          defaultValue={selected(values.condition)}
+          className={selectClass}
+        >
           <option value="">Any condition</option>
           {filters.conditions.map((condition) => (
             <option value={condition} key={condition}>
@@ -72,8 +100,13 @@ export function CatalogFilterForm({
         </select>
       </div>
       <div className="field">
-        <label htmlFor="catalog-location">Store or kiosk</label>
-        <select id="catalog-location" name="location" defaultValue={selected(values.location)}>
+        <Label htmlFor="catalog-location">Store or kiosk</Label>
+        <select
+          id="catalog-location"
+          name="location"
+          defaultValue={selected(values.location)}
+          className={selectClass}
+        >
           <option value="">All locations</option>
           {filters.locations.map((location) => (
             <option value={location.id} key={location.id}>
@@ -83,8 +116,13 @@ export function CatalogFilterForm({
         </select>
       </div>
       <div className="field">
-        <label htmlFor="catalog-city">City</label>
-        <select id="catalog-city" name="city" defaultValue={selected(values.city)}>
+        <Label htmlFor="catalog-city">City</Label>
+        <select
+          id="catalog-city"
+          name="city"
+          defaultValue={selected(values.city)}
+          className={selectClass}
+        >
           <option value="">All cities</option>
           {filters.cities.map((city) => (
             <option value={city} key={city}>
@@ -94,17 +132,22 @@ export function CatalogFilterForm({
         </select>
       </div>
       <div className="field">
-        <label htmlFor="catalog-sort">Sort by</label>
-        <select id="catalog-sort" name="sort" defaultValue={selected(values.sort) || "relevance"}>
+        <Label htmlFor="catalog-sort">Sort by</Label>
+        <select
+          id="catalog-sort"
+          name="sort"
+          defaultValue={selected(values.sort) || "relevance"}
+          className={selectClass}
+        >
           <option value="relevance">Most relevant</option>
           <option value="newest">Newest</option>
           <option value="price_asc">Price: low to high</option>
           <option value="price_desc">Price: high to low</option>
         </select>
       </div>
-      <button className="button button-primary" type="submit">
+      <Button type="submit" className="mt-6 h-11 w-full text-[0.83rem] font-extrabold">
         Show products
-      </button>
+      </Button>
     </form>
   );
 }

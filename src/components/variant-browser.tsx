@@ -1,7 +1,9 @@
 "use client";
 
+import { ExternalLink, Phone } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { directionsUrl, formatPeso } from "@/lib/catalog/presentation";
 import type { CatalogProductDetail } from "@/lib/catalog/types";
 
@@ -61,7 +63,8 @@ export function VariantBrowser({ product }: { product: CatalogProductDetail }) {
               <h2>Available locations</h2>
             </div>
             <span className="live-note">
-              <i /> Updated frequently
+              <span className="inline-block size-1.5 rounded-full bg-success" aria-hidden="true" />{" "}
+              Updated frequently
             </span>
           </div>
           <div className="location-list">
@@ -72,10 +75,20 @@ export function VariantBrowser({ product }: { product: CatalogProductDetail }) {
                   <p>{location.address || location.city}</p>
                 </div>
                 <div className="location-actions">
-                  {location.phone ? <a href={`tel:${location.phone}`}>Call</a> : null}
-                  <a href={directionsUrl(location)} target="_blank" rel="noreferrer">
-                    Directions ↗
-                  </a>
+                  {location.phone ? (
+                    <Button asChild variant="outline" size="sm" className="font-extrabold text-primary">
+                      <a href={`tel:${location.phone}`}>
+                        <Phone data-icon="inline-start" />
+                        Call
+                      </a>
+                    </Button>
+                  ) : null}
+                  <Button asChild variant="outline" size="sm" className="font-extrabold text-primary">
+                    <a href={directionsUrl(location)} target="_blank" rel="noreferrer">
+                      Directions
+                      <ExternalLink data-icon="inline-end" />
+                    </a>
+                  </Button>
                 </div>
               </article>
             ))}
