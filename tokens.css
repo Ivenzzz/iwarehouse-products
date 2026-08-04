@@ -1,12 +1,15 @@
 /* Hallmark · iWarehouse orange/black design tokens
  * Portable export of the system in src/app/globals.css.
- * paper #ffffff · accent oklch(64% 0.18 42) · axes: light / grotesk-sans / warm
+ *
+ * Vocabulary is shadcn-canonical: components consume the semantic layer
+ * (--primary, --muted-foreground, --border, --ring …). The brand and warm
+ * ramps are the source values and are not referenced by components directly.
  *
  * Contrast notes:
- *   white on --brand-ink ........ 5.2:1  (AA normal text)
- *   --brand-ink on --paper ...... 5.2:1  (AA normal text)
- *   --muted on --paper .......... 5.9:1  (AA normal text)
- *   --brand on --paper .......... 3.1:1  (large display only — never body copy)
+ *   --primary-foreground on --primary .... 5.2:1  (AA normal text)
+ *   --primary on --background ............ 5.2:1  (AA normal text)
+ *   --muted-foreground on --background ... 5.9:1  (AA normal text)
+ *   --brand on --background .............. 3.1:1  (large display only)
  */
 
 :root {
@@ -34,16 +37,33 @@
   --warm-800: #2a231d;
   --warm-900: #16110d;
 
-  /* semantic aliases */
-  --paper: #ffffff;
+  /* shadcn semantic layer */
+  --background: #ffffff;
+  --foreground: var(--warm-900);
+  --card: #ffffff;
+  --card-foreground: var(--warm-900);
+  --popover: #ffffff;
+  --popover-foreground: var(--warm-900);
+  --primary: var(--brand-700);
+  --primary-foreground: #ffffff;
+  --secondary: var(--warm-100);
+  --secondary-foreground: var(--warm-700);
+  --muted: var(--warm-100);
+  --muted-foreground: var(--warm-600);
+  --accent: var(--brand-50);
+  --accent-foreground: var(--brand-700);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: #ffffff;
+  --border: var(--warm-200);
+  --input: var(--warm-300);
+  --ring: var(--brand-500);
+  --radius: 0.625rem;
+
+  /* brand extras — no shadcn equivalent */
   --canvas: var(--warm-50);
-  --ink: var(--warm-900);
-  --muted: var(--warm-600);
-  --line: var(--warm-200);
   --brand: var(--brand-500);
-  --brand-ink: var(--brand-700);
-  --green: #15794f;
-  --green-soft: #eaf6f0;
+  --success: #15794f;
+  --success-soft: #eaf6f0;
   --night: #14100c;
   --night-copy: #c9bfb6;
 
@@ -72,13 +92,12 @@
   --brand-a22: rgba(242, 101, 34, 0.22);
   --brand-a34: rgba(242, 101, 34, 0.34);
   --warm-a05: rgba(60, 35, 15, 0.045);
-  --line-a82: rgba(232, 226, 219, 0.82);
+  --border-a82: rgba(232, 226, 219, 0.82);
   --orb-soft: rgba(255, 213, 184, 0.14);
   --orb-ring: rgba(212, 82, 15, 0.16);
   --glass-dark: rgba(30, 14, 4, 0.32);
-  --green-line: rgba(21, 121, 79, 0.14);
+  --success-line: rgba(21, 121, 79, 0.14);
 
-  /* type — unchanged by the rebrand */
-  --font-display: var(--font-manrope), Arial, sans-serif;
-  --font-body: var(--font-manrope), Arial, sans-serif;
+  /* type — Manrope, bound to --font-sans so shadcn components inherit it */
+  --font-sans: var(--font-manrope), Arial, sans-serif;
 }
