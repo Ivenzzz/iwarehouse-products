@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 500" role="img" aria-labelledby="title">
+  <title id="title">Product image coming soon</title>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#eef4ff"/>
+      <stop offset="1" stop-color="#dce8fb"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="500" rx="32" fill="url(#bg)"/>
+  <rect x="245" y="94" width="150" height="250" rx="25" fill="#fff" stroke="#9db6dc" stroke-width="8"/>
+  <circle cx="320" cy="315" r="8" fill="#9db6dc"/>
+  <path d="M275 205l42-43 30 30 22-22 26 27v62H245v-22z" fill="#c8d7ee"/>
+  <text x="320" y="410" text-anchor="middle" fill="#50698e" font-family="Arial, sans-serif" font-size="22">Image coming soon</text>
+</svg>
