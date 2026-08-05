@@ -31,9 +31,9 @@ export interface CatalogVariant {
   name: string;
   condition: string;
   attributes: CatalogAttribute[];
-  image_url: string | null;
-  cash_price_from: number | null;
-  srp_price: number | null;
+  imageUrl: string | null;
+  cashPriceFrom: number | null;
+  srpPrice: number | null;
   locations: CatalogLocation[];
 }
 
@@ -44,12 +44,20 @@ export interface CatalogProductSummary {
   brand: CatalogBrand;
   category: CatalogCategory;
   description: string | null;
-  image_url: string | null;
+  imageUrl: string | null;
   conditions: string[];
-  cash_price_from: number | null;
-  srp_price: number | null;
+  cashPriceFrom: number | null;
+  srpPrice: number | null;
   locations: CatalogLocation[];
-  updated_at: string | null;
+  updatedAt: string | null;
+}
+
+export interface CatalogFilters {
+  brands: CatalogBrand[];
+  categories: Array<{ id: number; name: string; children: CatalogBrand[] }>;
+  conditions: string[];
+  locations: Array<{ id: number; name: string; city: string | null }>;
+  cities: string[];
 }
 
 export interface CatalogSpecificationGroup {
@@ -62,19 +70,11 @@ export interface CatalogProductDetail extends CatalogProductSummary {
   variants: CatalogVariant[];
 }
 
-export interface CatalogFilters {
-  brands: CatalogBrand[];
-  categories: Array<{ id: number; name: string; children: CatalogBrand[] }>;
-  conditions: string[];
-  locations: Array<{ id: number; name: string; city: string | null }>;
-  cities: string[];
-}
-
 export interface PaginationMeta {
-  current_page: number;
-  per_page: number;
+  currentPage: number;
+  perPage: number;
   total: number;
-  last_page: number;
+  lastPage: number;
 }
 
 export interface PaginatedProducts {
@@ -89,7 +89,39 @@ export interface CatalogQuery {
   condition?: string;
   location?: string;
   city?: string;
-  sort?: "relevance" | "newest" | "price_asc" | "price_desc";
+  sort?: string;
   page?: string;
-  per_page?: string;
+  perPage?: string;
+}
+
+export type CatalogOutcome<T> =
+  | { status: "ready"; data: T }
+  | { status: "unavailable" };
+
+export interface HomeCatalogViewModel {
+  filters: CatalogFilters;
+  products: CatalogProductSummary[];
+}
+
+export type RawSearchParams = Record<string, string | string[] | undefined>;
+
+export interface BrowseCatalogViewModel {
+  filters: CatalogFilters;
+  products: CatalogProductSummary[];
+  meta: PaginationMeta;
+  range: { start: number; end: number; total: number };
+  query: RawSearchParams;
+}
+
+export type ProductDetailViewModel = CatalogProductDetail;
+
+export type ProductResolution =
+  | { status: "ready"; data: ProductDetailViewModel }
+  | { status: "not-found" }
+  | { status: "redirect"; location: string }
+  | { status: "unavailable" };
+
+export interface SitemapProduct {
+  path: string;
+  lastModified: string | null;
 }

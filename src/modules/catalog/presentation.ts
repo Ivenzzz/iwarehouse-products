@@ -1,4 +1,4 @@
-import type { CatalogLocation } from "./types";
+import type { CatalogLocation } from "./model";
 
 export function formatPeso(value: number | null): string {
   if (value === null) {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { CatalogFilters, CatalogQuery } from "@/lib/catalog/types";
+import type { CatalogFilters, CatalogQuery } from "../model";
 
 function selected(value: string | string[] | undefined): string {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
@@ -15,7 +15,7 @@ function selected(value: string | string[] | undefined): string {
  * The class list below matches shadcn's Input so the controls read as one set.
  */
 const selectClass =
-  "flex h-10 w-full min-w-0 appearance-none rounded-md border border-input bg-background px-3 py-1 text-[0.76rem] shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
+  "catalog-select flex h-10 w-full min-w-0 appearance-none rounded-md border border-input bg-background px-3 py-1 text-[0.76rem] shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
 
 export function CatalogFilterForm({
   filters,
@@ -27,13 +27,22 @@ export function CatalogFilterForm({
   const values = query as CatalogQuery;
 
   return (
-    <form className="filter-panel" action="/products" method="get">
-      <div className="filter-heading">
+    <form
+      className="sticky top-24 rounded-[15px] border border-border bg-white p-5 [&_.field]:mt-[15px] [&_.field]:block [&_.field>label]:mb-[7px] [&_.field>label]:text-[0.67rem] [&_.field>label]:font-extrabold max-[980px]:static max-[980px]:grid max-[980px]:grid-cols-3 max-[980px]:gap-x-[14px] max-[680px]:grid-cols-1"
+      action="/products"
+      method="get"
+    >
+      <div className="mb-5 flex items-end justify-between max-[980px]:col-span-full max-[680px]:col-span-auto">
         <div>
           <p className="eyebrow">Narrow your search</p>
-          <h2>Filters</h2>
+          <h2 className="m-0 text-[1.12rem]">Filters</h2>
         </div>
-        <Link href="/products">Clear all</Link>
+        <Link
+          className="inline-flex shrink-0 items-center gap-1.5 text-[0.8rem] font-extrabold whitespace-nowrap text-primary [&_svg]:size-[14px]"
+          href="/products"
+        >
+          Clear all
+        </Link>
       </div>
       <div className="field">
         <Label htmlFor="catalog-search">Search</Label>
@@ -145,7 +154,10 @@ export function CatalogFilterForm({
           <option value="price_desc">Price: high to low</option>
         </select>
       </div>
-      <Button type="submit" className="mt-6 h-11 w-full text-[0.83rem] font-extrabold">
+      <Button
+        type="submit"
+        className="mt-6 h-11 w-full text-[0.83rem] font-extrabold max-[980px]:col-span-full max-[680px]:col-span-auto"
+      >
         Show products
       </Button>
     </form>

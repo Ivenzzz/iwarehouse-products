@@ -80,6 +80,11 @@ const server = http.createServer((request, response) => {
     response.end(JSON.stringify({ data: detail }));
     return;
   }
+  if (url.pathname === "/api/v1/catalog/products/503") {
+    response.statusCode = 503;
+    response.end(JSON.stringify({ message: "Unavailable" }));
+    return;
+  }
   if (url.pathname === "/api/v1/catalog/products") {
     if (url.searchParams.get("q") === "unavailable") {
       response.statusCode = 503;

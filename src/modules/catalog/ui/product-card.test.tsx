@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ProductCard } from "./product-card";
-import type { CatalogProductSummary } from "@/lib/catalog/types";
+import type { CatalogProductSummary } from "../model";
 
 const product: CatalogProductSummary = {
   id: 17,
@@ -10,10 +10,10 @@ const product: CatalogProductSummary = {
   brand: { id: 1, name: "Apple" },
   category: { id: 2, name: "Smartphones", parent: { id: 1, name: "Phones" } },
   description: null,
-  image_url: null,
+  imageUrl: null,
   conditions: ["Brand New"],
-  cash_price_from: null,
-  srp_price: null,
+  cashPriceFrom: null,
+  srpPrice: null,
   locations: [
     {
       id: 3,
@@ -26,7 +26,7 @@ const product: CatalogProductSummary = {
       longitude: null,
     },
   ],
-  updated_at: null,
+  updatedAt: null,
 };
 
 describe("ProductCard", () => {

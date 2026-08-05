@@ -3,8 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { formatPeso, productPath } from "@/lib/catalog/presentation";
-import type { CatalogProductSummary } from "@/lib/catalog/types";
+import type { CatalogProductSummary } from "../model";
+import { formatPeso, productPath } from "../presentation";
 
 export function ProductCard({
   product,
@@ -21,7 +21,7 @@ export function ProductCard({
     <Card className="group relative gap-0 py-0 transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow) hover:ring-brand/40">
       <div className="relative aspect-1.35 overflow-hidden bg-linear-to-br from-(--warm-50) to-(--warm-100)">
         <Image
-          src={product.image_url || "/product-placeholder.svg"}
+          src={product.imageUrl || "/product-placeholder.svg"}
           alt=""
           width={560}
           height={440}
@@ -50,13 +50,13 @@ export function ProductCard({
         </div>
         <div className="mt-4.5 grid min-h-16 grid-cols-[1fr_auto] items-end">
           <small className="col-span-full text-[0.64rem] text-muted-foreground">
-            {product.cash_price_from === null ? "Price" : "From"}
+            {product.cashPriceFrom === null ? "Price" : "From"}
           </small>
           <strong className="text-[1.17rem] tracking-tighter text-primary">
-            {formatPeso(product.cash_price_from)}
+            {formatPeso(product.cashPriceFrom)}
           </strong>
-          {product.srp_price !== null && product.srp_price > (product.cash_price_from ?? 0) ? (
-            <del className="text-[0.69rem] text-(--warm-500)">{formatPeso(product.srp_price)}</del>
+          {product.srpPrice !== null && product.srpPrice > (product.cashPriceFrom ?? 0) ? (
+            <del className="text-[0.69rem] text-(--warm-500)">{formatPeso(product.srpPrice)}</del>
           ) : null}
         </div>
       </CardContent>
