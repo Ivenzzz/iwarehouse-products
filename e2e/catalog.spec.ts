@@ -33,11 +33,11 @@ test("customer browses from the homepage to a product and store actions", async 
     "http://127.0.0.1:3100/products/17-apple-iphone-17-pro",
   );
   await expect(page.getByRole("heading", { name: "Apple iPhone 17 Pro" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Call" })).toHaveAttribute("href", "tel:+63281234567");
-  await expect(page.getByRole("link", { name: /directions/i })).toHaveAttribute(
-    "href",
-    /google\.com\/maps/,
-  );
+  // exact: true — the footer's "Call Us" / "Get Directions" links would otherwise match too.
+  await expect(page.getByRole("link", { name: "Call", exact: true })).toHaveAttribute("href", "tel:+63281234567");
+  await expect(
+    page.getByRole("link", { name: "Directions", exact: true }),
+  ).toHaveAttribute("href", /google\.com\/maps/);
   await expect(page.getByText(/does not reserve an item/i)).toBeVisible();
   expect(
     await page.locator('script[type="application/ld+json"]').textContent(),

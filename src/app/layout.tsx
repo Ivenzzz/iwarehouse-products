@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
-import { loadSiteBranding, loadSiteNavigation } from "@/modules/catalog";
+import {
+  loadSiteBranding,
+  loadSiteNavigation,
+  loadStoreLocations,
+} from "@/modules/catalog";
 import "./globals.css";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
@@ -23,17 +27,26 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [{ logo }, nav] = await Promise.all([
+  const [{ logo }, nav, stores] = await Promise.all([
     loadSiteBranding(),
     loadSiteNavigation(),
+    loadStoreLocations(),
   ]);
+
+  // Footer chrome degrades gracefully: no reachable store phone, no Call Us.
+  const contactPhone =
+    stores.status === "ready"
+      ? (stores.data.groups
+          .flatMap((group) => group.locations)
+          .find((location) => location.phone)?.phone ?? null)
+      : null;
 
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body className={manrope.variable}>
         <SiteHeader logo={logo} nav={nav} />
         <main>{children}</main>
-        <SiteFooter logo={logo} />
+        <SiteFooter logo={logo} contactPhone={contactPhone} />
       </body>
     </html>
   );
