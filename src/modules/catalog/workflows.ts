@@ -5,6 +5,7 @@ import type {
   HomeCatalogViewModel,
   ProductResolution,
   RawSearchParams,
+  SiteBranding,
   SitemapProduct,
 } from "./model";
 import { CatalogSourceError, type CatalogSource } from "./source";
@@ -97,6 +98,19 @@ export function createCatalogWorkflows(source: CatalogSource) {
         return { status: "ready", data: product };
       } catch (error) {
         return unavailableOutcome(error);
+      }
+    },
+
+    async loadSiteBranding(): Promise<SiteBranding> {
+      try {
+        return await source.getBranding();
+      } catch (error) {
+        // Branding is decorative — a failed fetch must never break a page,
+        // so fall back to the wordmark instead of an unavailable outcome.
+        if (error instanceof CatalogSourceError) {
+          return { logo: null };
+        }
+        throw error;
       }
     },
 

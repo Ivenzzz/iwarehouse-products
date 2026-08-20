@@ -1,6 +1,7 @@
 export {
   browseCatalog,
   loadHomeCatalog,
+  loadSiteBranding,
   loadSitemapProducts,
   resolveProduct,
 } from "./server";
@@ -11,6 +12,8 @@ export type {
   ProductDetailViewModel,
   ProductResolution,
   RawSearchParams,
+  SiteBranding,
+  SiteBrandingLogo,
   SitemapProduct,
 } from "./model";
 export { BrowseCatalogView } from "./ui/browse-catalog-view";

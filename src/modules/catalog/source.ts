@@ -3,6 +3,7 @@ import type {
   CatalogProductDetail,
   CatalogQuery,
   PaginatedProducts,
+  SiteBranding,
 } from "./model";
 
 export class CatalogSourceError extends Error {
@@ -19,4 +20,5 @@ export interface CatalogSource {
   getProducts(query: CatalogQuery): Promise<PaginatedProducts>;
   getProduct(id: number): Promise<CatalogProductDetail | null>;
   getFilters(): Promise<CatalogFilters>;
+  getBranding(): Promise<SiteBranding>;
 }

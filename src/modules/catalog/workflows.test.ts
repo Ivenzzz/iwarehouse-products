@@ -54,17 +54,25 @@ function page(data: CatalogProductSummary[]): PaginatedProducts {
   };
 }
 
+function stubSource(overrides: Partial<CatalogSource>): CatalogSource {
+  return {
+    getFilters: async () => filters,
+    getProduct: async () => null,
+    getProducts: async () => page([]),
+    getBranding: async () => ({ logo: null }),
+    ...overrides,
+  };
+}
+
 describe("catalog workflows", () => {
   it("loads the homepage catalog through one outcome", async () => {
     const productQueries: CatalogQuery[] = [];
-    const source: CatalogSource = {
-      getFilters: async () => filters,
-      getProduct: async () => null,
+    const source = stubSource({
       getProducts: async (query) => {
         productQueries.push(query);
         return page([product]);
       },
-    };
+    });
 
     const catalog = createCatalogWorkflows(source);
 
@@ -77,9 +85,7 @@ describe("catalog workflows", () => {
 
   it("normalizes browse input and calculates the visible result range", async () => {
     const productQueries: CatalogQuery[] = [];
-    const source: CatalogSource = {
-      getFilters: async () => filters,
-      getProduct: async () => null,
+    const source = stubSource({
       getProducts: async (query) => {
         productQueries.push(query);
         return {
@@ -87,7 +93,7 @@ describe("catalog workflows", () => {
           meta: { currentPage: 2, perPage: 24, total: 31, lastPage: 2 },
         };
       },
-    };
+    });
 
     const catalog = createCatalogWorkflows(source);
     const input = {
@@ -128,11 +134,7 @@ describe("catalog workflows", () => {
   });
 
   it("resolves stale product slugs to the canonical location", async () => {
-    const source: CatalogSource = {
-      getFilters: async () => filters,
-      getProducts: async () => page([]),
-      getProduct: async () => detail,
-    };
+    const source = stubSource({ getProduct: async () => detail });
 
     const catalog = createCatalogWorkflows(source);
 
@@ -144,8 +146,7 @@ describe("catalog workflows", () => {
 
   it("loads every sitemap page behind one all-or-nothing outcome", async () => {
     const requestedPages: string[] = [];
-    const source: CatalogSource = {
-      getFilters: async () => filters,
+    const source = stubSource({
       getProduct: async () => detail,
       getProducts: async (query) => {
         const currentPage = Number(query.page);
@@ -162,7 +163,7 @@ describe("catalog workflows", () => {
           meta: { currentPage, perPage: 48, total: 3, lastPage: 3 },
         };
       },
-    };
+    });
 
     const catalog = createCatalogWorkflows(source);
 
@@ -187,13 +188,13 @@ describe("catalog workflows", () => {
   });
 
   it("returns unavailable when either homepage dependency fails", async () => {
-    const source: CatalogSource = {
+    const source = stubSource({
       getFilters: async () => {
         throw new CatalogSourceError("unavailable");
       },
       getProduct: async () => detail,
       getProducts: async () => page([product]),
-    };
+    });
 
     await expect(
       createCatalogWorkflows(source).loadHomeCatalog(),
@@ -201,14 +202,13 @@ describe("catalog workflows", () => {
   });
 
   it("uses a zero result range for an empty browse page", async () => {
-    const source: CatalogSource = {
-      getFilters: async () => filters,
+    const source = stubSource({
       getProduct: async () => detail,
       getProducts: async () => ({
         data: [],
         meta: { currentPage: 1, perPage: 24, total: 0, lastPage: 1 },
       }),
-    };
+    });
 
     await expect(
       createCatalogWorkflows(source).browseCatalog({}),
@@ -219,23 +219,19 @@ describe("catalog workflows", () => {
   });
 
   it("distinguishes ready, missing, invalid, and unavailable products", async () => {
-    const ready = createCatalogWorkflows({
-      getFilters: async () => filters,
-      getProducts: async () => page([]),
-      getProduct: async () => detail,
-    });
-    const missing = createCatalogWorkflows({
-      getFilters: async () => filters,
-      getProducts: async () => page([]),
-      getProduct: async () => null,
-    });
-    const unavailable = createCatalogWorkflows({
-      getFilters: async () => filters,
-      getProducts: async () => page([]),
-      getProduct: async () => {
-        throw new CatalogSourceError("unavailable");
-      },
-    });
+    const ready = createCatalogWorkflows(
+      stubSource({ getProduct: async () => detail }),
+    );
+    const missing = createCatalogWorkflows(
+      stubSource({ getProduct: async () => null }),
+    );
+    const unavailable = createCatalogWorkflows(
+      stubSource({
+        getProduct: async () => {
+          throw new CatalogSourceError("unavailable");
+        },
+      }),
+    );
 
     await expect(
       ready.resolveProduct("17-apple-iphone-17-pro"),
@@ -252,8 +248,7 @@ describe("catalog workflows", () => {
   });
 
   it("drops all sitemap products if a later page fails", async () => {
-    const source: CatalogSource = {
-      getFilters: async () => filters,
+    const source = stubSource({
       getProduct: async () => detail,
       getProducts: async (query) => {
         if (query.page === "2") {
@@ -264,7 +259,7 @@ describe("catalog workflows", () => {
           meta: { currentPage: 1, perPage: 48, total: 2, lastPage: 2 },
         };
       },
-    };
+    });
 
     await expect(
       createCatalogWorkflows(source).loadSitemapProducts(),
@@ -272,16 +267,48 @@ describe("catalog workflows", () => {
   });
 
   it("does not disguise unexpected implementation faults as outages", async () => {
-    const source: CatalogSource = {
+    const source = stubSource({
       getFilters: async () => {
         throw new TypeError("Broken mapper");
       },
       getProduct: async () => detail,
-      getProducts: async () => page([]),
-    };
+    });
 
     await expect(
       createCatalogWorkflows(source).loadHomeCatalog(),
     ).rejects.toThrow("Broken mapper");
+  });
+
+  it("loads site branding from the source", async () => {
+    const logo = { url: "https://erp.test/storage/logos/mark.png", name: "Mark" };
+    const source = stubSource({ getBranding: async () => ({ logo }) });
+
+    await expect(
+      createCatalogWorkflows(source).loadSiteBranding(),
+    ).resolves.toEqual({ logo });
+  });
+
+  it("falls back to a null logo when branding is unavailable", async () => {
+    const source = stubSource({
+      getBranding: async () => {
+        throw new CatalogSourceError("unavailable");
+      },
+    });
+
+    await expect(
+      createCatalogWorkflows(source).loadSiteBranding(),
+    ).resolves.toEqual({ logo: null });
+  });
+
+  it("does not disguise branding implementation faults as a missing logo", async () => {
+    const source = stubSource({
+      getBranding: async () => {
+        throw new TypeError("Broken branding mapper");
+      },
+    });
+
+    await expect(
+      createCatalogWorkflows(source).loadSiteBranding(),
+    ).rejects.toThrow("Broken branding mapper");
   });
 });

@@ -94,6 +94,15 @@ export interface CatalogQuery {
   perPage?: string;
 }
 
+export interface SiteBrandingLogo {
+  url: string;
+  name: string;
+}
+
+export interface SiteBranding {
+  logo: SiteBrandingLogo | null;
+}
+
 export type CatalogOutcome<T> =
   | { status: "ready"; data: T }
   | { status: "unavailable" };

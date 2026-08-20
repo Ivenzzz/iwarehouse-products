@@ -104,6 +104,17 @@ export const filtersResponseDtoSchema = z.object({
   }),
 });
 
+export const brandingResponseDtoSchema = z.object({
+  data: z.object({
+    logo: z
+      .object({
+        url: z.string(),
+        name: z.string(),
+      })
+      .nullable(),
+  }),
+});
+
 export type ProductSummaryDto = z.infer<typeof productSummaryDtoSchema>;
 export type ProductDetailDto = z.infer<typeof productResponseDtoSchema>["data"];
 export type FiltersDto = z.infer<typeof filtersResponseDtoSchema>["data"];

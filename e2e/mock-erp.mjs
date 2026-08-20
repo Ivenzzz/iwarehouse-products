@@ -76,6 +76,11 @@ const server = http.createServer((request, response) => {
     response.end(JSON.stringify({ data: filters }));
     return;
   }
+  // Null logo keeps the screenshot baselines on the CSS wordmark.
+  if (url.pathname === "/api/v1/catalog/branding") {
+    response.end(JSON.stringify({ data: { logo: null } }));
+    return;
+  }
   if (url.pathname === "/api/v1/catalog/products/17") {
     response.end(JSON.stringify({ data: detail }));
     return;

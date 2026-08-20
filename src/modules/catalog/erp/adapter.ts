@@ -5,12 +5,14 @@ import type {
   CatalogProductSummary,
   CatalogQuery,
   PaginatedProducts,
+  SiteBranding,
 } from "../model";
 import {
   CatalogSourceError,
   type CatalogSource,
 } from "../source";
 import {
+  brandingResponseDtoSchema,
   filtersResponseDtoSchema,
   productResponseDtoSchema,
   productsResponseDtoSchema,
@@ -164,6 +166,18 @@ export function createErpCatalogSource({
         throw new CatalogSourceError("unavailable");
       }
     },
+
+    async getBranding(): Promise<SiteBranding> {
+      try {
+        const response = brandingResponseDtoSchema.parse(
+          await request("/branding"),
+        );
+        return { logo: response.data.logo };
+      } catch (error) {
+        if (error instanceof CatalogSourceError) throw error;
+        throw new CatalogSourceError("unavailable");
+      }
+    },
   };
 }
 
@@ -186,6 +200,7 @@ export function createErpCatalogSourceFromEnvironment(
       getProducts: unavailable,
       getProduct: unavailable,
       getFilters: unavailable,
+      getBranding: unavailable,
     };
   }
 

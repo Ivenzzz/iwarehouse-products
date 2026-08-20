@@ -1,11 +1,11 @@
-import { BrandMark } from "./brand-mark";
+import { BrandMark, type BrandLogo } from "./brand-mark";
 
-export function SiteFooter() {
+export function SiteFooter({ logo }: { logo?: BrandLogo | null }) {
   return (
     <footer className="border-t border-border bg-[var(--warm-50)] pt-[52px] pb-[22px]">
       <div className="shell grid grid-cols-[1.3fr_1fr] gap-[100px] max-[680px]:grid-cols-1 max-[680px]:gap-[26px]">
         <div>
-          <BrandMark />
+          <BrandMark logo={logo} />
           <p className="max-w-[470px] text-[0.78rem] leading-[1.75] text-muted-foreground">
             Browse current products available at iWarehouse stores and kiosks.
           </p>

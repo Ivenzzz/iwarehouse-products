@@ -1,6 +1,31 @@
+import Image from "next/image";
 import Link from "next/link";
 
-export function BrandMark() {
+// Declared locally — src/components must not import feature modules.
+export interface BrandLogo {
+  url: string;
+  name: string;
+}
+
+export function BrandMark({ logo }: { logo?: BrandLogo | null }) {
+  if (logo) {
+    return (
+      <Link
+        className="inline-flex items-center leading-none"
+        href="/"
+        aria-label="iWarehouse home"
+      >
+        <Image
+          src={logo.url}
+          alt={logo.name || "iWarehouse"}
+          width={160}
+          height={39}
+          className="h-[39px] w-auto object-contain"
+        />
+      </Link>
+    );
+  }
+
   return (
     <Link
       className="inline-flex items-center gap-[11px] leading-none"

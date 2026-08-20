@@ -84,6 +84,85 @@ describe("ERP catalog adapter", () => {
         message: "Catalog connection is not configured.",
       }),
     );
+    await expect(source.getBranding()).rejects.toEqual(
+      expect.objectContaining({
+        kind: "unavailable",
+        message: "Catalog connection is not configured.",
+      }),
+    );
+  });
+
+  it("authenticates the branding request and maps the assigned logo", async () => {
+    const fetcher = vi.fn<typeof fetch>(async () =>
+      new Response(
+        JSON.stringify({
+          data: {
+            logo: {
+              url: "https://erp.example.test/storage/logos/mark.png",
+              name: "Store Wordmark",
+            },
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+    const source = createErpCatalogSource({
+      baseUrl: "https://erp.example.test/api/v1/catalog",
+      token: "secret-token",
+      fetcher,
+    });
+
+    await expect(source.getBranding()).resolves.toEqual({
+      logo: {
+        url: "https://erp.example.test/storage/logos/mark.png",
+        name: "Store Wordmark",
+      },
+    });
+    expect(fetcher).toHaveBeenCalledWith(
+      "https://erp.example.test/api/v1/catalog/branding",
+      expect.objectContaining({
+        headers: {
+          Accept: "application/json",
+          Authorization: "Bearer secret-token",
+        },
+        cache: "force-cache",
+        next: { revalidate: 60, tags: ["catalog"] },
+      }),
+    );
+  });
+
+  it("maps an unassigned branding logo to null", async () => {
+    const fetcher = vi.fn<typeof fetch>(async () =>
+      new Response(JSON.stringify({ data: { logo: null } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const source = createErpCatalogSource({
+      baseUrl: "https://erp.example.test/catalog",
+      token: "token",
+      fetcher,
+    });
+
+    await expect(source.getBranding()).resolves.toEqual({ logo: null });
+  });
+
+  it("translates malformed branding payloads to unavailable", async () => {
+    const fetcher = vi.fn<typeof fetch>(async () =>
+      new Response(JSON.stringify({ data: "not-branding" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const source = createErpCatalogSource({
+      baseUrl: "https://erp.example.test/catalog",
+      token: "token",
+      fetcher,
+    });
+
+    await expect(source.getBranding()).rejects.toMatchObject({
+      kind: "unavailable",
+    });
   });
 
   it("maps a valid product detail response", async () => {

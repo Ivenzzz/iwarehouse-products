@@ -11,3 +11,4 @@ export const loadHomeCatalog = workflows.loadHomeCatalog;
 export const browseCatalog = workflows.browseCatalog;
 export const resolveProduct = workflows.resolveProduct;
 export const loadSitemapProducts = workflows.loadSitemapProducts;
+export const loadSiteBranding = workflows.loadSiteBranding;

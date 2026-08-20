@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { loadSiteBranding } from "@/modules/catalog";
 import "./globals.css";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
@@ -19,13 +20,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const { logo } = await loadSiteBranding();
+
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body className={manrope.variable}>
-        <SiteHeader />
+        <SiteHeader logo={logo} />
         <main>{children}</main>
-        <SiteFooter />
+        <SiteFooter logo={logo} />
       </body>
     </html>
   );
