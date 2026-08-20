@@ -80,46 +80,9 @@ describe("catalog workflows", () => {
 
     await expect(catalog.loadHomeCatalog()).resolves.toEqual({
       status: "ready",
-      data: { filters, products: [product], categoryImages: { 2: null } },
+      data: { filters, products: [product] },
     });
-    expect(productQueries).toEqual([
-      { sort: "newest", perPage: "6" },
-      { category: "2", perPage: "1" },
-    ]);
-  });
-
-  it("borrows a showcase product image for each curated home category", async () => {
-    const source = stubSource({
-      getProducts: async (query) =>
-        query.category === "2"
-          ? page([{ ...product, imageUrl: "https://erp.test/iphone.png" }])
-          : page([product]),
-    });
-
-    const outcome = await createCatalogWorkflows(source).loadHomeCatalog();
-
-    expect(outcome).toMatchObject({
-      status: "ready",
-      data: { categoryImages: { 2: "https://erp.test/iphone.png" } },
-    });
-  });
-
-  it("keeps the homepage ready when a showcase image lookup fails", async () => {
-    const source = stubSource({
-      getProducts: async (query) => {
-        if (query.category) {
-          throw new CatalogSourceError("unavailable");
-        }
-        return page([product]);
-      },
-    });
-
-    await expect(
-      createCatalogWorkflows(source).loadHomeCatalog(),
-    ).resolves.toEqual({
-      status: "ready",
-      data: { filters, products: [product], categoryImages: { 2: null } },
-    });
+    expect(productQueries).toEqual([{ sort: "newest", perPage: "6" }]);
   });
 
   it("normalizes browse input and calculates the visible result range", async () => {

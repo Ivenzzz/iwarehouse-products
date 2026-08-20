@@ -7,6 +7,11 @@ describe("catalog presentation", () => {
     expect(formatPeso(null)).toBe("Contact store for price");
   });
 
+  it("treats zero and negative prices as unpriced", () => {
+    expect(formatPeso(0)).toBe("Contact store for price");
+    expect(formatPeso(-1)).toBe("Contact store for price");
+  });
+
   it("builds stable product and location links", () => {
     expect(productPath({ id: 17, slug: "apple-iphone-17-pro" })).toBe(
       "/products/17-apple-iphone-17-pro",

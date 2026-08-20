@@ -17,7 +17,7 @@ export function ProductDetailView({
 }) {
   const prices = product.variants
     .map((variant) => variant.cashPriceFrom)
-    .filter((price): price is number => price !== null);
+    .filter((price): price is number => price !== null && price > 0);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -31,7 +31,7 @@ export function ProductDetailView({
           priceCurrency: "PHP",
           lowPrice: Math.min(...prices),
           highPrice: Math.max(...prices),
-          offerCount: product.variants.length,
+          offerCount: prices.length,
           availability: "https://schema.org/InStock",
         }
       : undefined,

@@ -19,6 +19,8 @@ export function VariantBrowser({
 
   if (!variant) return null;
 
+  const hasPrice = variant.cashPriceFrom !== null && variant.cashPriceFrom > 0;
+
   return (
     <div className="grid grid-cols-[1.02fr_0.98fr] items-start gap-16 max-[980px]:grid-cols-1 max-[980px]:gap-[38px]">
       <div className="sticky top-[110px] overflow-hidden rounded-[22px] border border-border bg-white shadow-(--shadow) max-[980px]:static max-[980px]:max-w-[680px]">
@@ -49,12 +51,13 @@ export function VariantBrowser({
 
         <div className="my-7 flex flex-wrap items-baseline gap-x-[15px] gap-y-[9px]">
           <small className="w-full text-[0.68rem] font-bold text-muted-foreground">
-            {variant.cashPriceFrom === null ? "Price" : "Cash price from"}
+            {hasPrice ? "Cash price from" : "Price"}
           </small>
           <strong className="text-[2rem] tracking-[-0.05em] text-primary">
             {formatPeso(variant.cashPriceFrom)}
           </strong>
-          {variant.srpPrice !== null &&
+          {hasPrice &&
+          variant.srpPrice !== null &&
           variant.srpPrice > (variant.cashPriceFrom ?? 0) ? (
             <span className="text-[0.76rem] text-[var(--warm-500)]">
               SRP {formatPeso(variant.srpPrice)}

@@ -1,7 +1,8 @@
 import type { CatalogLocation } from "./model";
 
 export function formatPeso(value: number | null): string {
-  if (value === null) {
+  // A zero price is placeholder data, never a real offer — treat it as unpriced.
+  if (value === null || value <= 0) {
     return "Contact store for price";
   }
 

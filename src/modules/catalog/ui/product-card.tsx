@@ -16,6 +16,7 @@ export function ProductCard({
   const locationLabel = `${product.locations.length} ${
     product.locations.length === 1 ? "location" : "locations"
   }`;
+  const hasPrice = product.cashPriceFrom !== null && product.cashPriceFrom > 0;
 
   return (
     <Card className="group relative gap-0 py-0 transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow) hover:ring-brand/40">
@@ -50,12 +51,12 @@ export function ProductCard({
         </div>
         <div className="mt-4.5 grid min-h-16 grid-cols-[1fr_auto] items-end">
           <small className="col-span-full text-[0.64rem] text-muted-foreground">
-            {product.cashPriceFrom === null ? "Price" : "From"}
+            {hasPrice ? "From" : "Price"}
           </small>
           <strong className="text-[1.17rem] tracking-tighter text-primary">
             {formatPeso(product.cashPriceFrom)}
           </strong>
-          {product.srpPrice !== null && product.srpPrice > (product.cashPriceFrom ?? 0) ? (
+          {hasPrice && product.srpPrice !== null && product.srpPrice > (product.cashPriceFrom ?? 0) ? (
             <del className="text-[0.69rem] text-(--warm-500)">{formatPeso(product.srpPrice)}</del>
           ) : null}
         </div>

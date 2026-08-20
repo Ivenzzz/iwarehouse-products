@@ -24,7 +24,6 @@ export interface ResolvedHomeCategory {
   tagline: string;
   icon: LucideIcon;
   href: string;
-  imageUrl: string | null;
 }
 
 // Display names and taglines are curated for the storefront; ids must exist
@@ -96,26 +95,14 @@ function liveCategoryIds(
   return ids;
 }
 
-/** Ids of the curated cards present in live data, in display order. */
-export function homeCategoryIds(
-  categories: CatalogFilters["categories"],
-): number[] {
-  const live = liveCategoryIds(categories);
-  return HOME_CATEGORIES.filter((entry) => live.has(entry.id)).map(
-    (entry) => entry.id,
-  );
-}
-
 export function resolveHomeCategories(
   categories: CatalogFilters["categories"],
-  images: Record<number, string | null> = {},
 ): ResolvedHomeCategory[] {
   const live = liveCategoryIds(categories);
   return HOME_CATEGORIES.filter((entry) => live.has(entry.id)).map(
     (entry) => ({
       ...entry,
       href: categoryHref(entry.id),
-      imageUrl: images[entry.id] ?? null,
     }),
   );
 }

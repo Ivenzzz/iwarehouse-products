@@ -12,7 +12,6 @@ import type {
   StoreDirectoryViewModel,
 } from "./model";
 import { CatalogSourceError, type CatalogSource } from "./source";
-import { homeCategoryIds } from "./ui/home-categories";
 
 function unavailableOutcome(error: unknown): { status: "unavailable" } {
   if (error instanceof CatalogSourceError) {
@@ -20,25 +19,6 @@ function unavailableOutcome(error: unknown): { status: "unavailable" } {
   }
 
   throw error;
-}
-
-// Category cards borrow the photo of one product from their aisle. The
-// imagery is decorative — a failed lookup must never hide the card, so it
-// degrades to the shared placeholder instead.
-async function categoryShowcaseImage(
-  source: CatalogSource,
-  categoryId: number,
-): Promise<string | null> {
-  try {
-    const products = await source.getProducts({
-      category: String(categoryId),
-      perPage: "1",
-    });
-    return products.data[0]?.imageUrl ?? null;
-  } catch (error) {
-    if (error instanceof CatalogSourceError) return null;
-    throw error;
-  }
 }
 
 const FALLBACK_CITY_GROUP = "Other locations";
@@ -90,17 +70,10 @@ export function createCatalogWorkflows(source: CatalogSource) {
           source.getFilters(),
           source.getProducts({ sort: "newest", perPage: "6" }),
         ]);
-        const categoryImages = Object.fromEntries(
-          await Promise.all(
-            homeCategoryIds(filters.categories).map(
-              async (id) => [id, await categoryShowcaseImage(source, id)] as const,
-            ),
-          ),
-        );
 
         return {
           status: "ready",
-          data: { filters, products: products.data, categoryImages },
+          data: { filters, products: products.data },
         };
       } catch (error) {
         return unavailableOutcome(error);

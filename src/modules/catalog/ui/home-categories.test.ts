@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CatalogFilters } from "../model";
-import { homeCategoryIds, resolveHomeCategories } from "./home-categories";
+import { resolveHomeCategories } from "./home-categories";
 
 const fullTree: CatalogFilters["categories"] = [
   {
@@ -101,28 +101,7 @@ describe("resolveHomeCategories", () => {
     expect(resolved).toHaveLength(7);
   });
 
-  it("attaches showcase images by id and defaults to none", () => {
-    const resolved = resolveHomeCategories(fullTree, {
-      2: "https://erp.test/storage/products/iphone.png",
-    });
-    expect(resolved[0].imageUrl).toBe(
-      "https://erp.test/storage/products/iphone.png",
-    );
-    expect(resolved[1].imageUrl).toBeNull();
-  });
-
   it("returns nothing when no categories are available", () => {
     expect(resolveHomeCategories([])).toEqual([]);
-  });
-});
-
-describe("homeCategoryIds", () => {
-  it("lists the resolved card ids in display order", () => {
-    expect(homeCategoryIds(fullTree)).toEqual([2, 9, 3, 18, 23, 35, 30, 4]);
-  });
-
-  it("omits ids missing from live data", () => {
-    const onlyMobile = fullTree.filter((parent) => parent.id === 1);
-    expect(homeCategoryIds(onlyMobile)).toEqual([2, 3]);
   });
 });
