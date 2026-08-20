@@ -10,6 +10,18 @@ test("customer browses from the homepage to a product and store actions", async 
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: /your next tech upgrade/i })).toBeVisible();
+
+  // Category cards stretch a single link across the whole card.
+  const categorySection = page.locator("section", {
+    has: page.getByRole("heading", { name: "Shop by category" }),
+  });
+  await expect(
+    categorySection.getByRole("link", { name: "Smartphones", exact: true }),
+  ).toHaveAttribute("href", "/products?category=2");
+  await expect(
+    categorySection.getByRole("link", { name: "Accessories", exact: true }),
+  ).toHaveAttribute("href", "/products?category=35");
+
   await page.getByRole("link", { name: "View Apple iPhone 17 Pro" }).click();
 
   await expect(page).toHaveURL(/\/products\/17-apple-iphone-17-pro$/);
@@ -57,7 +69,7 @@ test("header navigation exposes catalog dropdowns and the stores page", async ({
 
   await nav.getByRole("button", { name: "Categories" }).click();
   await expect(
-    nav.getByRole("link", { name: "Phones", exact: true }),
+    nav.getByRole("link", { name: "Mobile Devices", exact: true }),
   ).toHaveAttribute("href", "/products?category=1");
 
   await page.keyboard.press("Escape");

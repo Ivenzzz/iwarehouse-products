@@ -125,6 +125,8 @@ export type CatalogOutcome<T> =
 export interface HomeCatalogViewModel {
   filters: CatalogFilters;
   products: CatalogProductSummary[];
+  /** One showcase product image per curated home category id. */
+  categoryImages: Record<number, string | null>;
 }
 
 export type RawSearchParams = Record<string, string | string[] | undefined>;

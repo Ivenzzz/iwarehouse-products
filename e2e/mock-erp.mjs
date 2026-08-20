@@ -27,7 +27,11 @@ const summary = {
   slug: "apple-iphone-17-pro",
   name: "Apple iPhone 17 Pro",
   brand: { id: 1, name: "Apple" },
-  category: { id: 2, name: "Smartphones", parent: { id: 1, name: "Phones" } },
+  category: {
+    id: 2,
+    name: "Smartphones",
+    parent: { id: 1, name: "Mobile Devices" },
+  },
   description: "A flagship phone ready at selected iWarehouse stores.",
   image_url: null,
   conditions: ["Brand New"],
@@ -66,7 +70,66 @@ const detail = {
 const filters = {
   brands: [{ id: 1, name: "Apple" }],
   categories: [
-    { id: 1, name: "Phones", children: [{ id: 2, name: "Smartphones" }] },
+    {
+      id: 1,
+      name: "Mobile Devices",
+      children: [
+        { id: 2, name: "Smartphones" },
+        { id: 3, name: "Tablets" },
+      ],
+    },
+    {
+      id: 9,
+      name: "Computers & Office",
+      children: [
+        { id: 10, name: "Laptops" },
+        { id: 11, name: "Desktop PCs" },
+        { id: 12, name: "Mini PCs" },
+        { id: 13, name: "Monitors" },
+        { id: 14, name: "Computer Components" },
+      ],
+    },
+    {
+      id: 4,
+      name: "Wearables",
+      children: [
+        { id: 5, name: "Smartwatches" },
+        { id: 6, name: "Fitness Bands" },
+      ],
+    },
+    {
+      id: 18,
+      name: "Gaming",
+      children: [
+        { id: 19, name: "Consoles" },
+        { id: 22, name: "Gaming Accessories" },
+      ],
+    },
+    {
+      id: 30,
+      name: "Cameras & Drones",
+      children: [
+        { id: 32, name: "Action Cameras" },
+        { id: 33, name: "Photography Cameras" },
+      ],
+    },
+    {
+      id: 23,
+      name: "TV, Audio & Entertainment",
+      children: [
+        { id: 24, name: "Televisions" },
+        { id: 25, name: "Speakers" },
+        { id: 26, name: "Headphones" },
+      ],
+    },
+    {
+      id: 35,
+      name: "Accessories & Storage",
+      children: [
+        { id: 36, name: "Chargers & Powerbanks" },
+        { id: 37, name: "Storage Devices" },
+      ],
+    },
   ],
   conditions: ["Brand New"],
   locations: [{ id: 3, name: "Makati Store", city: "Makati" }],
