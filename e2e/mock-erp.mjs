@@ -11,6 +11,17 @@ const location = {
   longitude: 121.0244,
 };
 
+const kioskLocation = {
+  id: 8,
+  name: "BGC Kiosk",
+  type: "kiosk",
+  address: "5th Avenue, Bonifacio Global City, Taguig",
+  city: "Taguig",
+  phone: null,
+  latitude: null,
+  longitude: null,
+};
+
 const summary = {
   id: 17,
   slug: "apple-iphone-17-pro",
@@ -80,6 +91,10 @@ const server = http.createServer((request, response) => {
   // null hero keeps them on the bundled collage fallback.
   if (url.pathname === "/api/v1/catalog/branding") {
     response.end(JSON.stringify({ data: { logo: null, hero: null } }));
+    return;
+  }
+  if (url.pathname === "/api/v1/catalog/locations") {
+    response.end(JSON.stringify({ data: [location, kioskLocation] }));
     return;
   }
   if (url.pathname === "/api/v1/catalog/products/17") {

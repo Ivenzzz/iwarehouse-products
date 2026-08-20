@@ -109,6 +109,10 @@ const brandingImageDtoSchema = z.object({
   name: z.string(),
 });
 
+export const locationsResponseDtoSchema = z.object({
+  data: z.array(locationDtoSchema),
+});
+
 export const brandingResponseDtoSchema = z.object({
   data: z.object({
     logo: brandingImageDtoSchema.nullable(),

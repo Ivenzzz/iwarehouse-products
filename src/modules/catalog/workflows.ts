@@ -1,12 +1,15 @@
 import type {
   BrowseCatalogViewModel,
+  CatalogLocation,
   CatalogOutcome,
   CatalogQuery,
   HomeCatalogViewModel,
   ProductResolution,
   RawSearchParams,
   SiteBranding,
+  SiteNavigation,
   SitemapProduct,
+  StoreDirectoryViewModel,
 } from "./model";
 import { CatalogSourceError, type CatalogSource } from "./source";
 
@@ -16,6 +19,28 @@ function unavailableOutcome(error: unknown): { status: "unavailable" } {
   }
 
   throw error;
+}
+
+const FALLBACK_CITY_GROUP = "Other locations";
+
+function groupByCity(
+  locations: CatalogLocation[],
+): StoreDirectoryViewModel["groups"] {
+  const groups = new Map<string, CatalogLocation[]>();
+
+  for (const location of locations) {
+    const city = location.city ?? FALLBACK_CITY_GROUP;
+    groups.set(city, [...(groups.get(city) ?? []), location]);
+  }
+
+  return [...groups.entries()]
+    .sort(([a], [b]) => {
+      // Locations without a city trail the named ones.
+      if (a === FALLBACK_CITY_GROUP) return 1;
+      if (b === FALLBACK_CITY_GROUP) return -1;
+      return a.localeCompare(b);
+    })
+    .map(([city, cityLocations]) => ({ city, locations: cityLocations }));
 }
 
 function queryFrom(params: RawSearchParams): CatalogQuery {
@@ -96,6 +121,31 @@ export function createCatalogWorkflows(source: CatalogSource) {
         }
 
         return { status: "ready", data: product };
+      } catch (error) {
+        return unavailableOutcome(error);
+      }
+    },
+
+    async loadSiteNavigation(): Promise<SiteNavigation> {
+      try {
+        const filters = await source.getFilters();
+        return { categories: filters.categories, brands: filters.brands };
+      } catch (error) {
+        // Header navigation is chrome — a failed fetch must never break a
+        // page, so the menus degrade to plain links instead.
+        if (error instanceof CatalogSourceError) {
+          return { categories: [], brands: [] };
+        }
+        throw error;
+      }
+    },
+
+    async loadStoreLocations(): Promise<
+      CatalogOutcome<StoreDirectoryViewModel>
+    > {
+      try {
+        const locations = await source.getLocations();
+        return { status: "ready", data: { groups: groupByCity(locations) } };
       } catch (error) {
         return unavailableOutcome(error);
       }

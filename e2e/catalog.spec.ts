@@ -32,6 +32,69 @@ test("customer browses from the homepage to a product and store actions", async 
   ).toContain('"@type":"Product"');
 });
 
+test("header navigation exposes catalog dropdowns and the stores page", async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto("/");
+  await expect(
+    page.getByRole("link", { name: "Search stores" }),
+  ).toHaveAttribute("href", "/stores");
+
+  if (isMobile) {
+    await page.getByLabel("Menu").click();
+    await expect(
+      page
+        .getByLabel("Mobile navigation")
+        .getByRole("link", { name: "Stores" }),
+    ).toHaveAttribute("href", "/stores");
+    return;
+  }
+
+  const nav = page.getByLabel("Main navigation");
+  await expect(nav.getByRole("link", { name: "Products" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Stores" })).toBeVisible();
+
+  await nav.getByRole("button", { name: "Categories" }).click();
+  await expect(
+    nav.getByRole("link", { name: "Phones", exact: true }),
+  ).toHaveAttribute("href", "/products?category=1");
+
+  await page.keyboard.press("Escape");
+  const brandsTrigger = nav.getByRole("button", { name: "Brands" });
+  await brandsTrigger.focus();
+  await brandsTrigger.press("Enter");
+  await expect(
+    nav.getByRole("link", { name: "Apple", exact: true }),
+  ).toHaveAttribute("href", "/products?brand=1");
+});
+
+test("stores page lists locations grouped by city with store actions", async ({
+  page,
+}) => {
+  await page.goto("/stores");
+
+  await expect(page.getByRole("heading", { name: "Our stores" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Makati" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Taguig" })).toBeVisible();
+
+  const makatiCard = page.locator("article", { hasText: "Makati Store" });
+  await expect(makatiCard.getByRole("link", { name: "Call" })).toHaveAttribute(
+    "href",
+    "tel:+63281234567",
+  );
+  await expect(
+    makatiCard.getByRole("link", { name: /get directions/i }),
+  ).toHaveAttribute("href", /google\.com\/maps/);
+  await expect(
+    makatiCard.getByRole("link", { name: "Browse stock" }),
+  ).toHaveAttribute("href", "/products?location=3");
+
+  // Kiosks without a phone number must not offer a dead Call action.
+  const kioskCard = page.locator("article", { hasText: "BGC Kiosk" });
+  await expect(kioskCard.getByRole("link", { name: "Call" })).toHaveCount(0);
+});
+
 test("catalog filters stay in the URL and ERP failures have a friendly state", async ({ page }) => {
   await page.goto("/products");
   await page.getByLabel("Brand").selectOption("1");
@@ -81,6 +144,14 @@ test("key catalog pages preserve their visual contract", async ({ page }) => {
   await page.goto("/products/17-apple-iphone-17-pro");
   await hideDevelopmentChrome(page);
   await expect(page).toHaveScreenshot("product-detail.png", {
+    animations: "disabled",
+    caret: "initial",
+    fullPage: true,
+  });
+
+  await page.goto("/stores");
+  await hideDevelopmentChrome(page);
+  await expect(page).toHaveScreenshot("stores.png", {
     animations: "disabled",
     caret: "initial",
     fullPage: true,

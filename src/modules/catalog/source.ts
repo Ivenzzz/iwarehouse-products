@@ -1,5 +1,6 @@
 import type {
   CatalogFilters,
+  CatalogLocation,
   CatalogProductDetail,
   CatalogQuery,
   PaginatedProducts,
@@ -21,4 +22,5 @@ export interface CatalogSource {
   getProduct(id: number): Promise<CatalogProductDetail | null>;
   getFilters(): Promise<CatalogFilters>;
   getBranding(): Promise<SiteBranding>;
+  getLocations(): Promise<CatalogLocation[]>;
 }

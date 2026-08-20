@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type {
   CatalogFilters,
+  CatalogLocation,
   CatalogProductSummary,
   CatalogQuery,
   PaginatedProducts,
@@ -60,6 +61,7 @@ function stubSource(overrides: Partial<CatalogSource>): CatalogSource {
     getProduct: async () => null,
     getProducts: async () => page([]),
     getBranding: async () => ({ logo: null, hero: null }),
+    getLocations: async () => [],
     ...overrides,
   };
 }
@@ -311,5 +313,106 @@ describe("catalog workflows", () => {
     await expect(
       createCatalogWorkflows(source).loadSiteBranding(),
     ).rejects.toThrow("Broken branding mapper");
+  });
+
+  it("maps filters into site navigation", async () => {
+    const source = stubSource({ getFilters: async () => filters });
+
+    await expect(
+      createCatalogWorkflows(source).loadSiteNavigation(),
+    ).resolves.toEqual({
+      categories: filters.categories,
+      brands: filters.brands,
+    });
+  });
+
+  it("falls back to empty navigation when filters are unavailable", async () => {
+    const source = stubSource({
+      getFilters: async () => {
+        throw new CatalogSourceError("unavailable");
+      },
+    });
+
+    await expect(
+      createCatalogWorkflows(source).loadSiteNavigation(),
+    ).resolves.toEqual({ categories: [], brands: [] });
+  });
+
+  it("does not disguise navigation implementation faults as empty menus", async () => {
+    const source = stubSource({
+      getFilters: async () => {
+        throw new TypeError("Broken filters mapper");
+      },
+    });
+
+    await expect(
+      createCatalogWorkflows(source).loadSiteNavigation(),
+    ).rejects.toThrow("Broken filters mapper");
+  });
+
+  it("groups store locations by city with unknown cities trailing", async () => {
+    const location = (
+      id: number,
+      name: string,
+      city: string | null,
+    ): CatalogLocation => ({
+      id,
+      name,
+      type: "store",
+      address: "Address",
+      city,
+      phone: null,
+      latitude: null,
+      longitude: null,
+    });
+    const source = stubSource({
+      getLocations: async () => [
+        location(1, "Taguig Store", "Taguig"),
+        location(2, "Roving Kiosk", null),
+        location(3, "Makati Store", "Makati"),
+        location(4, "Makati Kiosk", "Makati"),
+      ],
+    });
+
+    const outcome = await createCatalogWorkflows(source).loadStoreLocations();
+
+    expect(outcome).toMatchObject({ status: "ready" });
+    if (outcome.status !== "ready") throw new Error("expected ready");
+    expect(
+      outcome.data.groups.map((group) => ({
+        city: group.city,
+        names: group.locations.map((l) => l.name),
+      })),
+    ).toEqual([
+      { city: "Makati", names: ["Makati Store", "Makati Kiosk"] },
+      { city: "Taguig", names: ["Taguig Store"] },
+      { city: "Other locations", names: ["Roving Kiosk"] },
+    ]);
+  });
+
+  it("reports the store directory unavailable for both source error kinds", async () => {
+    for (const kind of ["not-found", "unavailable"] as const) {
+      const source = stubSource({
+        getLocations: async () => {
+          throw new CatalogSourceError(kind);
+        },
+      });
+
+      await expect(
+        createCatalogWorkflows(source).loadStoreLocations(),
+      ).resolves.toEqual({ status: "unavailable" });
+    }
+  });
+
+  it("does not disguise store directory implementation faults as outages", async () => {
+    const source = stubSource({
+      getLocations: async () => {
+        throw new TypeError("Broken locations mapper");
+      },
+    });
+
+    await expect(
+      createCatalogWorkflows(source).loadStoreLocations(),
+    ).rejects.toThrow("Broken locations mapper");
   });
 });

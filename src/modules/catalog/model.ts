@@ -109,6 +109,15 @@ export interface SiteBranding {
   hero: SiteBrandingHero | null;
 }
 
+export interface SiteNavigation {
+  categories: Array<{ id: number; name: string; children: CatalogBrand[] }>;
+  brands: CatalogBrand[];
+}
+
+export interface StoreDirectoryViewModel {
+  groups: Array<{ city: string; locations: CatalogLocation[] }>;
+}
+
 export type CatalogOutcome<T> =
   | { status: "ready"; data: T }
   | { status: "unavailable" };

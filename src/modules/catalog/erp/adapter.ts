@@ -14,6 +14,7 @@ import {
 import {
   brandingResponseDtoSchema,
   filtersResponseDtoSchema,
+  locationsResponseDtoSchema,
   productResponseDtoSchema,
   productsResponseDtoSchema,
   type FiltersDto,
@@ -178,6 +179,18 @@ export function createErpCatalogSource({
         throw new CatalogSourceError("unavailable");
       }
     },
+
+    async getLocations(): Promise<CatalogLocation[]> {
+      try {
+        const response = locationsResponseDtoSchema.parse(
+          await request("/locations"),
+        );
+        return response.data.map(mapLocation);
+      } catch (error) {
+        if (error instanceof CatalogSourceError) throw error;
+        throw new CatalogSourceError("unavailable");
+      }
+    },
   };
 }
 
@@ -201,6 +214,7 @@ export function createErpCatalogSourceFromEnvironment(
       getProduct: unavailable,
       getFilters: unavailable,
       getBranding: unavailable,
+      getLocations: unavailable,
     };
   }
 

@@ -177,6 +177,71 @@ describe("ERP catalog adapter", () => {
     });
   });
 
+  it("maps a locations response", async () => {
+    const location = {
+      id: 3,
+      name: "Makati Store",
+      type: "store",
+      address: "123 Ayala Avenue, Makati, Metro Manila, 1226",
+      city: "Makati",
+      phone: "+63 2 8123 4567",
+      latitude: 14.5547,
+      longitude: 121.0244,
+    };
+    const fetcher = vi.fn<typeof fetch>(async () =>
+      new Response(JSON.stringify({ data: [location] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const source = createErpCatalogSource({
+      baseUrl: "https://erp.example.test/api/v1/catalog",
+      token: "token",
+      fetcher,
+    });
+
+    await expect(source.getLocations()).resolves.toEqual([location]);
+    expect(fetcher).toHaveBeenCalledWith(
+      "https://erp.example.test/api/v1/catalog/locations",
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer token" }),
+      }),
+    );
+  });
+
+  it("translates a missing locations endpoint to not-found", async () => {
+    const fetcher = vi.fn<typeof fetch>(async () =>
+      new Response(JSON.stringify({ message: "Not found" }), { status: 404 }),
+    );
+    const source = createErpCatalogSource({
+      baseUrl: "https://erp.example.test/catalog",
+      token: "token",
+      fetcher,
+    });
+
+    await expect(source.getLocations()).rejects.toMatchObject({
+      kind: "not-found",
+    });
+  });
+
+  it("translates malformed locations payloads to unavailable", async () => {
+    const fetcher = vi.fn<typeof fetch>(async () =>
+      new Response(JSON.stringify({ data: "not-locations" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const source = createErpCatalogSource({
+      baseUrl: "https://erp.example.test/catalog",
+      token: "token",
+      fetcher,
+    });
+
+    await expect(source.getLocations()).rejects.toMatchObject({
+      kind: "unavailable",
+    });
+  });
+
   it("translates malformed branding payloads to unavailable", async () => {
     const fetcher = vi.fn<typeof fetch>(async () =>
       new Response(JSON.stringify({ data: "not-branding" }), {
