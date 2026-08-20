@@ -9,7 +9,7 @@ async function hideDevelopmentChrome(page: Page) {
 test("customer browses from the homepage to a product and store actions", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: /find the right tech/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /your next tech upgrade/i })).toBeVisible();
   await page.getByRole("link", { name: "View Apple iPhone 17 Pro" }).click();
 
   await expect(page).toHaveURL(/\/products\/17-apple-iphone-17-pro$/);

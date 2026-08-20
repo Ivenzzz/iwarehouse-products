@@ -1,14 +1,10 @@
 import {
-  Award,
   Gamepad2,
   Headphones,
-  Headset,
   Laptop,
   MapPin,
   Package,
-  RotateCcw,
   Search,
-  ShieldCheck,
   Smartphone,
   Tablet,
   Tag,
@@ -27,9 +23,9 @@ import {
 export const dynamic = "force-dynamic";
 
 const trustChips = [
-  { icon: Package, title: "Current store stock", detail: "See what's in stock now" },
-  { icon: Tag, title: "Transparent pricing", detail: "No hidden fees" },
-  { icon: ShieldCheck, title: "No account needed", detail: "Quick and easy" },
+  { icon: MapPin, title: "Available Near You", detail: "Check participating stores" },
+  { icon: Tag, title: "Easy Price Checking", detail: "Browse before visiting" },
+  { icon: Package, title: "More Choices", detail: "Phones, laptops, accessories & more" },
 ];
 
 const popularSearches = [
@@ -39,13 +35,6 @@ const popularSearches = [
   { label: "AirPods Pro", icon: Headphones },
   { label: "PS5", icon: Gamepad2 },
   { label: "Galaxy Tab", icon: Tablet },
-];
-
-const featureStrip = [
-  { icon: MapPin, title: "Available at 100+ stores", detail: "Nationwide coverage" },
-  { icon: Award, title: "Trusted brands", detail: "Genuine products" },
-  { icon: Headset, title: "Expert support", detail: "In-store assistance" },
-  { icon: RotateCcw, title: "Easy returns", detail: "Hassle-free" },
 ];
 
 export default async function HomePage() {
@@ -65,23 +54,16 @@ export default async function HomePage() {
   return (
     <>
       <section className="hero">
-        <div className="shell relative grid min-h-[560px] grid-cols-[1.08fr_0.92fr] items-center gap-[70px] pt-[76px] pb-9 max-[980px]:min-h-0 max-[980px]:grid-cols-1 max-[980px]:pt-[70px] max-[680px]:pt-[55px]">
+        <div className="shell relative grid min-h-[560px] grid-cols-[1.04fr_0.96fr] items-center gap-[48px] pt-[76px] pb-9 max-[980px]:min-h-0 max-[980px]:grid-cols-1 max-[980px]:pt-[70px] max-[680px]:pt-[55px]">
           <div className="relative z-2">
-            <p className="eyebrow inline-flex items-center gap-2 rounded-[99px] border border-[var(--brand-a34)] bg-white/[0.72] px-[13px] py-[7px]">
-              <span
-                className="size-[7px] shrink-0 rounded-full bg-brand"
-                aria-hidden="true"
-              />
-              Live store availability
-            </p>
-            <h1 className="mt-[19px] mb-[22px] max-w-[660px] text-[clamp(2.8rem,4.6vw,4.5rem)] leading-[1.02] font-[850] tracking-[-0.065em] text-foreground max-[680px]:text-[clamp(2.5rem,12vw,3.7rem)]">
-              Find the right tech,{" "}
+            <h1 className="m-0 mb-[22px] max-w-[680px] text-[clamp(2.6rem,4vw,3.85rem)] leading-[1.06] font-[850] tracking-[-0.065em] text-foreground max-[680px]:text-[clamp(2.3rem,11vw,3.4rem)]">
+              Your next <em className="not-italic text-brand">tech upgrade</em>{" "}
               <br className="max-[680px]:hidden" />
-              <em className="not-italic text-brand">ready</em> nearby.
+              starts here.
             </h1>
             <p className="m-0 max-w-[610px] text-[1.07rem] leading-[1.75] text-[var(--warm-600)]">
-              Explore phones, laptops, accessories, and more currently
-              available at iWarehouse stores and kiosks.
+              Discover the latest devices, everyday essentials, and
+              great-value tech available at iWarehouse.
             </p>
             <form
               className="mt-[31px] flex max-w-[650px] items-center gap-3 rounded-[15px] border border-[var(--warm-300)] bg-white py-[7px] pr-[7px] pl-[18px] shadow-(--shadow-raise) max-[680px]:grid max-[680px]:grid-cols-[auto_1fr]"
@@ -97,27 +79,27 @@ export default async function HomePage() {
               <Input
                 id="hero-q"
                 name="q"
-                placeholder="Search brand, model, or feature"
+                placeholder="Search phones, laptops, accessories..."
                 className="h-11 flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
               />
               <Button
                 type="submit"
                 className="h-11 px-6 text-[0.83rem] font-extrabold max-[680px]:col-span-full max-[680px]:min-h-[46px]"
               >
-                Search products
+                Explore Products
               </Button>
             </form>
-            <div className="mt-6 flex flex-wrap gap-x-7 gap-y-4 max-[680px]:gap-x-5">
+            <div className="mt-6 flex flex-wrap gap-x-5 gap-y-4 max-[680px]:gap-x-4">
               {trustChips.map(({ icon: Icon, title, detail }) => (
-                <div key={title} className="flex items-center gap-3">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--brand-a08)] text-brand">
-                    <Icon className="size-[18px]" aria-hidden="true" />
+                <div key={title} className="flex items-center gap-2.5">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--brand-a08)] text-brand">
+                    <Icon className="size-4" aria-hidden="true" />
                   </span>
                   <div>
-                    <p className="m-0 text-[0.8rem] font-extrabold text-foreground">
+                    <p className="m-0 text-[0.78rem] font-extrabold text-foreground">
                       {title}
                     </p>
-                    <p className="m-0 text-[0.72rem] text-[var(--warm-600)]">
+                    <p className="m-0 text-[0.7rem] text-[var(--warm-600)]">
                       {detail}
                     </p>
                   </div>
@@ -125,7 +107,7 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
-          <div className="hero-art">
+          <div className="hero-art -mt-8 self-stretch">
             <Image
               src={branding.hero?.url ?? "/hero-collage.png"}
               alt={
@@ -134,8 +116,8 @@ export default async function HomePage() {
               }
               fill
               priority
-              sizes="(max-width: 980px) 1px, 44vw"
-              className="object-contain"
+              sizes="(max-width: 980px) 1px, 52vw"
+              className="scale-[1.35] object-contain"
             />
           </div>
         </div>
@@ -151,30 +133,6 @@ export default async function HomePage() {
                 <Icon className="size-3.5 shrink-0" aria-hidden="true" />
                 {label}
               </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-[26px]">
-        <div className="shell">
-          <div className="grid grid-cols-4 gap-x-8 gap-y-5 rounded-3xl border border-[var(--warm-200)] bg-white px-9 py-7 shadow-(--shadow-sm) max-[980px]:grid-cols-2 max-[560px]:grid-cols-1 max-[680px]:px-6">
-            {featureStrip.map(({ icon: Icon, title, detail }) => (
-              <div key={title} className="flex items-center gap-4">
-                <Icon
-                  className="size-6 shrink-0 text-[var(--warm-700)]"
-                  strokeWidth={1.6}
-                  aria-hidden="true"
-                />
-                <div>
-                  <p className="m-0 text-[0.86rem] font-extrabold text-foreground">
-                    {title}
-                  </p>
-                  <p className="m-0 text-[0.75rem] text-[var(--warm-600)]">
-                    {detail}
-                  </p>
-                </div>
-              </div>
             ))}
           </div>
         </div>
