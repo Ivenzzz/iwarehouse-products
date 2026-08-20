@@ -1,4 +1,19 @@
-import { Check, Search } from "lucide-react";
+import {
+  Award,
+  Gamepad2,
+  Headphones,
+  Headset,
+  Laptop,
+  MapPin,
+  Package,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+  Smartphone,
+  Tablet,
+  Tag,
+} from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,12 +21,38 @@ import {
   CatalogUnavailableView,
   HomeCatalogSections,
   loadHomeCatalog,
+  loadSiteBranding,
 } from "@/modules/catalog";
 
 export const dynamic = "force-dynamic";
 
+const trustChips = [
+  { icon: Package, title: "Current store stock", detail: "See what's in stock now" },
+  { icon: Tag, title: "Transparent pricing", detail: "No hidden fees" },
+  { icon: ShieldCheck, title: "No account needed", detail: "Quick and easy" },
+];
+
+const popularSearches = [
+  { label: "iPhone 15", icon: Smartphone },
+  { label: "Samsung S24", icon: Smartphone },
+  { label: "MacBook Air", icon: Laptop },
+  { label: "AirPods Pro", icon: Headphones },
+  { label: "PS5", icon: Gamepad2 },
+  { label: "Galaxy Tab", icon: Tablet },
+];
+
+const featureStrip = [
+  { icon: MapPin, title: "Available at 100+ stores", detail: "Nationwide coverage" },
+  { icon: Award, title: "Trusted brands", detail: "Genuine products" },
+  { icon: Headset, title: "Expert support", detail: "In-store assistance" },
+  { icon: RotateCcw, title: "Easy returns", detail: "Hassle-free" },
+];
+
 export default async function HomePage() {
-  const catalog = await loadHomeCatalog();
+  const [catalog, branding] = await Promise.all([
+    loadHomeCatalog(),
+    loadSiteBranding(),
+  ]);
 
   if (catalog.status === "unavailable") {
     return (
@@ -24,14 +65,19 @@ export default async function HomePage() {
   return (
     <>
       <section className="hero">
-        <div className="shell relative grid min-h-[600px] grid-cols-[1.08fr_0.92fr] items-center gap-[70px] py-[76px] max-[980px]:min-h-0 max-[980px]:grid-cols-1 max-[980px]:py-[70px] max-[680px]:pt-[55px] max-[680px]:pb-[62px]">
+        <div className="shell relative grid min-h-[560px] grid-cols-[1.08fr_0.92fr] items-center gap-[70px] pt-[76px] pb-9 max-[980px]:min-h-0 max-[980px]:grid-cols-1 max-[980px]:pt-[70px] max-[680px]:pt-[55px]">
           <div className="relative z-2">
-            <p className="eyebrow inline-flex items-center rounded-[99px] border border-[var(--brand-a20)] bg-white/[0.72] px-[11px] py-[7px]">
+            <p className="eyebrow inline-flex items-center gap-2 rounded-[99px] border border-[var(--brand-a34)] bg-white/[0.72] px-[13px] py-[7px]">
+              <span
+                className="size-[7px] shrink-0 rounded-full bg-brand"
+                aria-hidden="true"
+              />
               Live store availability
             </p>
-            <h1 className="mt-[19px] mb-[22px] max-w-[660px] text-[clamp(3rem,5.3vw,5.2rem)] leading-[0.98] font-[850] tracking-[-0.065em] text-foreground max-[680px]:text-[clamp(2.7rem,14vw,4.1rem)]">
+            <h1 className="mt-[19px] mb-[22px] max-w-[660px] text-[clamp(2.8rem,4.6vw,4.5rem)] leading-[1.02] font-[850] tracking-[-0.065em] text-foreground max-[680px]:text-[clamp(2.5rem,12vw,3.7rem)]">
               Find the right tech,{" "}
-              <em className="not-italic text-brand">ready nearby.</em>
+              <br className="max-[680px]:hidden" />
+              <em className="not-italic text-brand">ready</em> nearby.
             </h1>
             <p className="m-0 max-w-[610px] text-[1.07rem] leading-[1.75] text-[var(--warm-600)]">
               Explore phones, laptops, accessories, and more currently
@@ -61,42 +107,75 @@ export default async function HomePage() {
                 Search products
               </Button>
             </form>
-            <div className="mt-5 flex flex-wrap gap-5 text-[0.75rem] font-bold text-[var(--warm-600)] max-[680px]:gap-x-[15px] max-[680px]:gap-y-[9px]">
-              <span className="inline-flex items-center gap-1.5">
-                <Check className="size-[14px] text-success" aria-hidden="true" />{" "}
-                Current store stock
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Check className="size-[14px] text-success" aria-hidden="true" />{" "}
-                Transparent pricing
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Check className="size-[14px] text-success" aria-hidden="true" />{" "}
-                No account needed
-              </span>
+            <div className="mt-6 flex flex-wrap gap-x-7 gap-y-4 max-[680px]:gap-x-5">
+              {trustChips.map(({ icon: Icon, title, detail }) => (
+                <div key={title} className="flex items-center gap-3">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--brand-a08)] text-brand">
+                    <Icon className="size-[18px]" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className="m-0 text-[0.8rem] font-extrabold text-foreground">
+                      {title}
+                    </p>
+                    <p className="m-0 text-[0.72rem] text-[var(--warm-600)]">
+                      {detail}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="hero-art" aria-hidden="true">
-            <div className="orb orb-one" />
-            <div className="orb orb-two" />
-            <div className="device-card device-main">
-              <span className="device-camera" />
-              <div className="device-screen">
-                <i />
-                <b>Available now</b>
+          <div className="hero-art">
+            <Image
+              src={branding.hero?.url ?? "/hero-collage.png"}
+              alt={
+                branding.hero?.name ??
+                "Laptops, tablets, phones, and accessories available at iWarehouse"
+              }
+              fill
+              priority
+              sizes="(max-width: 980px) 1px, 44vw"
+              className="object-contain"
+            />
+          </div>
+        </div>
+        <div className="shell relative z-2 pb-[70px] max-[980px]:pb-[64px] max-[680px]:pb-[55px]">
+          <p className="eyebrow">Popular searches</p>
+          <div className="flex flex-wrap gap-2.5">
+            {popularSearches.map(({ label, icon: Icon }) => (
+              <Link
+                key={label}
+                href={{ pathname: "/products", query: { q: label } }}
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--warm-300)] bg-white px-4 py-2 text-[0.78rem] font-bold text-[var(--warm-700)] shadow-(--shadow-sm) transition-colors hover:border-[var(--brand-a34)] hover:text-brand"
+              >
+                <Icon className="size-3.5 shrink-0" aria-hidden="true" />
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-[26px]">
+        <div className="shell">
+          <div className="grid grid-cols-4 gap-x-8 gap-y-5 rounded-3xl border border-[var(--warm-200)] bg-white px-9 py-7 shadow-(--shadow-sm) max-[980px]:grid-cols-2 max-[560px]:grid-cols-1 max-[680px]:px-6">
+            {featureStrip.map(({ icon: Icon, title, detail }) => (
+              <div key={title} className="flex items-center gap-4">
+                <Icon
+                  className="size-6 shrink-0 text-[var(--warm-700)]"
+                  strokeWidth={1.6}
+                  aria-hidden="true"
+                />
+                <div>
+                  <p className="m-0 text-[0.86rem] font-extrabold text-foreground">
+                    {title}
+                  </p>
+                  <p className="m-0 text-[0.75rem] text-[var(--warm-600)]">
+                    {detail}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="floating-chip chip-price">
-              <small>Live pricing</small>
-              <strong>Updated often</strong>
-            </div>
-            <div className="floating-chip chip-store">
-              <span className="size-2 shrink-0 rounded-full bg-success" />
-              <div>
-                <small>Find it nearby</small>
-                <strong>Stores & kiosks</strong>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

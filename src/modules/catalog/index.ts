@@ -13,6 +13,7 @@ export type {
   ProductResolution,
   RawSearchParams,
   SiteBranding,
+  SiteBrandingHero,
   SiteBrandingLogo,
   SitemapProduct,
 } from "./model";

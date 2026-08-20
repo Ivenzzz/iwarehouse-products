@@ -49,10 +49,8 @@
 
   --shadow-sm: 0 4px 15px rgba(38, 22, 10, 0.04);
   --shadow: 0 18px 50px rgba(38, 22, 10, 0.09);
-  --shadow-lg: 0 42px 65px rgba(20, 12, 6, 0.26);
   --shadow-brand: 0 8px 18px rgba(242, 101, 34, 0.22);
   --shadow-raise: 0 15px 38px rgba(38, 22, 10, 0.1);
-  --shadow-float: 0 15px 35px rgba(38, 22, 10, 0.12);
 
   --brand-a08: rgba(242, 101, 34, 0.08);
   --brand-a16: rgba(242, 101, 34, 0.16);
@@ -62,8 +60,6 @@
   --warm-a05: rgba(60, 35, 15, 0.045);
   --border-a82: rgba(232, 226, 219, 0.82);
   --orb-soft: rgba(255, 213, 184, 0.14);
-  --orb-ring: rgba(212, 82, 15, 0.16);
-  --glass-dark: rgba(30, 14, 4, 0.32);
   --success-line: rgba(21, 121, 79, 0.14);
 
   --background: #ffffff;
@@ -196,126 +192,45 @@
   mask-image: linear-gradient(to right, black, transparent 74%);
 }
 
+/*
+ * The hero collage is a transparent product cutout supplied by the ERP;
+ * the warm glow and pedestal shadow that ground it stay in CSS so any
+ * upload still sits on-brand.
+ */
 .hero-art {
   position: relative;
   min-height: 465px;
+  isolation: isolate;
 }
 
-.orb {
+.hero-art::before {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(1px);
+  z-index: -1;
+  inset: -8% -12%;
+  background: radial-gradient(
+    ellipse 60% 52% at 55% 46%,
+    var(--brand-a22),
+    var(--orb-soft) 58%,
+    transparent 80%
+  );
+  content: "";
+  filter: blur(8px);
 }
 
-.orb-one {
-  inset: 5% 3% auto auto;
-  width: 390px;
-  height: 390px;
-  background: linear-gradient(145deg, var(--brand-a22), var(--orb-soft));
-}
-
-.orb-two {
-  right: -40px;
-  bottom: -20px;
-  width: 250px;
-  height: 250px;
-  border: 1px solid var(--orb-ring);
-}
-
-.device-card {
+.hero-art::after {
   position: absolute;
-  top: 22px;
-  left: 50%;
-  width: 230px;
-  height: 405px;
-  padding: 13px;
-  transform: translateX(-48%) rotate(7deg);
-  border: 7px solid var(--warm-900);
-  border-radius: 40px;
-  background: var(--warm-800);
-  box-shadow: var(--shadow-lg);
-}
-
-.device-screen {
-  display: flex;
-  height: 100%;
-  align-items: end;
-  justify-content: center;
-  padding: 28px;
-  border-radius: 27px;
-  background:
-    radial-gradient(
-      circle at 60% 35%,
-      rgba(255, 255, 255, 0.7),
-      transparent 10%
-    ),
-    linear-gradient(
-      150deg,
-      var(--brand-200),
-      var(--brand-500) 50%,
-      var(--brand-800)
-    );
-  color: white;
-}
-
-.device-screen i {
-  position: absolute;
-  top: 26px;
-  width: 64px;
-  height: 17px;
-  border-radius: 20px;
-  background: var(--warm-900);
-}
-
-.device-screen b {
-  padding: 8px 13px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 20px;
-  background: var(--glass-dark);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  backdrop-filter: blur(8px);
-}
-
-.floating-chip {
-  position: absolute;
-  z-index: 2;
-  padding: 14px 17px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: var(--shadow-float);
-  backdrop-filter: blur(10px);
-}
-
-.floating-chip small,
-.floating-chip strong {
-  display: block;
-}
-
-.floating-chip small {
-  margin-bottom: 4px;
-  color: var(--muted-foreground);
-  font-size: 0.63rem;
-}
-
-.floating-chip strong {
-  color: var(--foreground);
-  font-size: 0.78rem;
-}
-
-.chip-price {
-  top: 92px;
-  left: 5px;
-}
-
-.chip-store {
-  right: -6px;
-  bottom: 66px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  z-index: -1;
+  right: 8%;
+  bottom: 5%;
+  left: 8%;
+  height: 42px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(38, 22, 10, 0.18),
+    transparent 68%
+  );
+  content: "";
+  filter: blur(7px);
 }
 
 .store-banner {

@@ -104,14 +104,16 @@ export const filtersResponseDtoSchema = z.object({
   }),
 });
 
+const brandingImageDtoSchema = z.object({
+  url: z.string(),
+  name: z.string(),
+});
+
 export const brandingResponseDtoSchema = z.object({
   data: z.object({
-    logo: z
-      .object({
-        url: z.string(),
-        name: z.string(),
-      })
-      .nullable(),
+    logo: brandingImageDtoSchema.nullable(),
+    // Optional so a storefront deploy can precede the ERP upgrade.
+    hero: brandingImageDtoSchema.nullable().optional(),
   }),
 });
 

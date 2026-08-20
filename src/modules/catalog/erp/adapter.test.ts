@@ -92,7 +92,7 @@ describe("ERP catalog adapter", () => {
     );
   });
 
-  it("authenticates the branding request and maps the assigned logo", async () => {
+  it("authenticates the branding request and maps the assigned logo and hero", async () => {
     const fetcher = vi.fn<typeof fetch>(async () =>
       new Response(
         JSON.stringify({
@@ -100,6 +100,10 @@ describe("ERP catalog adapter", () => {
             logo: {
               url: "https://erp.example.test/storage/logos/mark.png",
               name: "Store Wordmark",
+            },
+            hero: {
+              url: "https://erp.example.test/storage/hero/collage.webp",
+              name: "Homepage hero",
             },
           },
         }),
@@ -117,6 +121,10 @@ describe("ERP catalog adapter", () => {
         url: "https://erp.example.test/storage/logos/mark.png",
         name: "Store Wordmark",
       },
+      hero: {
+        url: "https://erp.example.test/storage/hero/collage.webp",
+        name: "Homepage hero",
+      },
     });
     expect(fetcher).toHaveBeenCalledWith(
       "https://erp.example.test/api/v1/catalog/branding",
@@ -131,7 +139,26 @@ describe("ERP catalog adapter", () => {
     );
   });
 
-  it("maps an unassigned branding logo to null", async () => {
+  it("maps an unassigned branding logo and hero to null", async () => {
+    const fetcher = vi.fn<typeof fetch>(async () =>
+      new Response(JSON.stringify({ data: { logo: null, hero: null } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const source = createErpCatalogSource({
+      baseUrl: "https://erp.example.test/catalog",
+      token: "token",
+      fetcher,
+    });
+
+    await expect(source.getBranding()).resolves.toEqual({
+      logo: null,
+      hero: null,
+    });
+  });
+
+  it("maps a branding payload without a hero field to a null hero", async () => {
     const fetcher = vi.fn<typeof fetch>(async () =>
       new Response(JSON.stringify({ data: { logo: null } }), {
         status: 200,
@@ -144,7 +171,10 @@ describe("ERP catalog adapter", () => {
       fetcher,
     });
 
-    await expect(source.getBranding()).resolves.toEqual({ logo: null });
+    await expect(source.getBranding()).resolves.toEqual({
+      logo: null,
+      hero: null,
+    });
   });
 
   it("translates malformed branding payloads to unavailable", async () => {

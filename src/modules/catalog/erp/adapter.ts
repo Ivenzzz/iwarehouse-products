@@ -172,7 +172,7 @@ export function createErpCatalogSource({
         const response = brandingResponseDtoSchema.parse(
           await request("/branding"),
         );
-        return { logo: response.data.logo };
+        return { logo: response.data.logo, hero: response.data.hero ?? null };
       } catch (error) {
         if (error instanceof CatalogSourceError) throw error;
         throw new CatalogSourceError("unavailable");

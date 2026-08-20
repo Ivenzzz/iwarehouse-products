@@ -99,8 +99,14 @@ export interface SiteBrandingLogo {
   name: string;
 }
 
+export interface SiteBrandingHero {
+  url: string;
+  name: string;
+}
+
 export interface SiteBranding {
   logo: SiteBrandingLogo | null;
+  hero: SiteBrandingHero | null;
 }
 
 export type CatalogOutcome<T> =

@@ -76,9 +76,10 @@ const server = http.createServer((request, response) => {
     response.end(JSON.stringify({ data: filters }));
     return;
   }
-  // Null logo keeps the screenshot baselines on the CSS wordmark.
+  // Null logo keeps the screenshot baselines on the CSS wordmark, and a
+  // null hero keeps them on the bundled collage fallback.
   if (url.pathname === "/api/v1/catalog/branding") {
-    response.end(JSON.stringify({ data: { logo: null } }));
+    response.end(JSON.stringify({ data: { logo: null, hero: null } }));
     return;
   }
   if (url.pathname === "/api/v1/catalog/products/17") {

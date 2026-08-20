@@ -59,7 +59,7 @@ function stubSource(overrides: Partial<CatalogSource>): CatalogSource {
     getFilters: async () => filters,
     getProduct: async () => null,
     getProducts: async () => page([]),
-    getBranding: async () => ({ logo: null }),
+    getBranding: async () => ({ logo: null, hero: null }),
     ...overrides,
   };
 }
@@ -281,14 +281,15 @@ describe("catalog workflows", () => {
 
   it("loads site branding from the source", async () => {
     const logo = { url: "https://erp.test/storage/logos/mark.png", name: "Mark" };
-    const source = stubSource({ getBranding: async () => ({ logo }) });
+    const hero = { url: "https://erp.test/storage/hero/collage.webp", name: "Hero" };
+    const source = stubSource({ getBranding: async () => ({ logo, hero }) });
 
     await expect(
       createCatalogWorkflows(source).loadSiteBranding(),
-    ).resolves.toEqual({ logo });
+    ).resolves.toEqual({ logo, hero });
   });
 
-  it("falls back to a null logo when branding is unavailable", async () => {
+  it("falls back to a null logo and hero when branding is unavailable", async () => {
     const source = stubSource({
       getBranding: async () => {
         throw new CatalogSourceError("unavailable");
@@ -297,7 +298,7 @@ describe("catalog workflows", () => {
 
     await expect(
       createCatalogWorkflows(source).loadSiteBranding(),
-    ).resolves.toEqual({ logo: null });
+    ).resolves.toEqual({ logo: null, hero: null });
   });
 
   it("does not disguise branding implementation faults as a missing logo", async () => {

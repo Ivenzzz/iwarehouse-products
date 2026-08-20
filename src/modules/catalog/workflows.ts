@@ -108,7 +108,7 @@ export function createCatalogWorkflows(source: CatalogSource) {
         // Branding is decorative — a failed fetch must never break a page,
         // so fall back to the wordmark instead of an unavailable outcome.
         if (error instanceof CatalogSourceError) {
-          return { logo: null };
+          return { logo: null, hero: null };
         }
         throw error;
       }
