@@ -107,21 +107,27 @@ test("stores page lists locations grouped by city with store actions", async ({
   await expect(kioskCard.getByRole("link", { name: "Call" })).toHaveCount(0);
 });
 
-test("catalog filters stay in the URL and ERP failures have a friendly state", async ({
-  page,
-  isMobile,
-}) => {
+test("catalog filters stay in the URL and ERP failures have a friendly state", async ({ page }) => {
   await page.goto("/products");
-  if (isMobile) {
-    await page.locator('label[for="catalog-filters-toggle"]').click();
-  }
-  await page.getByLabel("Brand").selectOption("1");
-  await page.getByLabel("City").selectOption("Makati");
-  await page.getByRole("button", { name: "Show products" }).click();
 
+  // exact: true — the header's "Brands" menu would otherwise match too.
+  await page.getByRole("button", { name: "Brand", exact: true }).click();
+  await page
+    .getByRole("dialog", { name: "Brand" })
+    .getByRole("link", { name: "Apple", exact: true })
+    .click();
+  await expect(page).toHaveURL(/brand=1/);
+  await expect(page.getByRole("button", { name: "Brand: Apple" })).toBeVisible();
+
+  await page.getByRole("button", { name: "City" }).click();
+  await page
+    .getByRole("dialog", { name: "City" })
+    .getByRole("link", { name: "Makati", exact: true })
+    .click();
   await expect(page).toHaveURL(/brand=1/);
   await expect(page).toHaveURL(/city=Makati/);
-  await expect(page.getByText("Showing 1–1 of 1")).toBeVisible();
+  await expect(page.getByText("1 Result", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Clear all" })).toBeVisible();
 
   await page.goto("/products?q=unavailable");
   await expect(page.getByRole("heading", { name: /can’t load products right now/i })).toBeVisible();

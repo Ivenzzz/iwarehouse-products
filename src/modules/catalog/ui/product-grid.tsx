@@ -20,9 +20,9 @@ export function ProductGrid({ products }: { products: CatalogProductSummary[] })
   }
 
   return (
-    <div className="grid grid-cols-3 gap-4 max-[1100px]:grid-cols-2 max-[680px]:grid-cols-1">
+    <div className="grid grid-cols-4 gap-4 max-[1100px]:grid-cols-3 max-[860px]:grid-cols-2 max-[560px]:grid-cols-1">
       {products.map((product, index) => (
-        <ProductCard key={product.id} product={product} priority={index < 3} />
+        <ProductCard key={product.id} product={product} priority={index < 4} />
       ))}
     </div>
   );
