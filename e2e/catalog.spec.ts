@@ -72,6 +72,9 @@ test("header navigation exposes catalog dropdowns and the stores page", async ({
     nav.getByRole("link", { name: "Mobile Devices", exact: true }),
   ).toHaveAttribute("href", "/products?category=1");
 
+  // A pointer left resting on Categories can reopen it by hover, which made
+  // this keyboard check fail about 1 run in 25.
+  await page.mouse.move(0, 0);
   await page.keyboard.press("Escape");
   const brandsTrigger = nav.getByRole("button", { name: "Brands" });
   await brandsTrigger.focus();
