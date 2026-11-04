@@ -14,8 +14,7 @@ export function BrowseCatalogView({
       <div className="shell">
         <SectionHeading
           as="h1"
-          title="Browse products."
-          note="Live store availability."
+          title="Explore iWarehouse Products"
           className="mb-8"
         />
         <CatalogFilterBar
