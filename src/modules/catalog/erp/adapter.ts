@@ -49,6 +49,7 @@ function mapProductSummary(product: ProductSummaryDto): CatalogProductSummary {
     description: product.description,
     imageUrl: product.image_url,
     conditions: product.conditions,
+    options: product.options ?? { colors: [], configurations: [] },
     cashPriceFrom: product.cash_price_from,
     srpPrice: product.srp_price,
     locations: product.locations.map(mapLocation),

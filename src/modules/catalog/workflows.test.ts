@@ -36,6 +36,7 @@ const product: CatalogProductSummary = {
   description: null,
   imageUrl: null,
   conditions: ["Brand New"],
+  options: { colors: [], configurations: [] },
   cashPriceFrom: 42000,
   srpPrice: 47000,
   locations: [],

@@ -1,9 +1,73 @@
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import type { CatalogProductSummary } from "../model";
-import { formatPeso, productPath } from "../presentation";
+import {
+  formatPeso,
+  memoryLabels,
+  productPath,
+  swatchColor,
+} from "../presentation";
 import { ProductPhoto } from "./product-photo";
+
+const MAX_SWATCHES = 5;
+const MAX_MEMORY_PILLS = 2;
+
+function MoreCount({ count }: { count: number }) {
+  if (count <= 0) return null;
+
+  return <span className="text-xs text-muted-foreground">+{count}</span>;
+}
+
+/**
+ * Options are display only, so the visible rows are hidden from screen readers
+ * in favor of one complete sentence that includes what doesn't fit.
+ */
+function ProductOptions({
+  options,
+}: {
+  options: CatalogProductSummary["options"];
+}) {
+  const colors = options.colors;
+  const memory = memoryLabels(options.configurations);
+
+  return (
+    <>
+      {colors.length > 0 ? (
+        <div className="mt-3">
+          <p className="sr-only">Available colors: {colors.join(", ")}</p>
+          <div className="flex items-center gap-1.5" aria-hidden="true">
+            {colors.slice(0, MAX_SWATCHES).map((color) => (
+              <span
+                className="size-3.5 rounded-full ring-1 ring-[var(--warm-300)]"
+                data-slot="swatch"
+                key={color}
+                style={{ backgroundColor: swatchColor(color) }}
+                title={color}
+              />
+            ))}
+            <MoreCount count={colors.length - MAX_SWATCHES} />
+          </div>
+        </div>
+      ) : null}
+      {memory.length > 0 ? (
+        <div className="mt-2.5">
+          <p className="sr-only">Available memory: {memory.join(", ")}</p>
+          <div className="flex items-center gap-1.5" aria-hidden="true">
+            {memory.slice(0, MAX_MEMORY_PILLS).map((label) => (
+              <span
+                className="rounded-full border border-border px-2 py-0.5 text-xs font-semibold whitespace-nowrap"
+                key={label}
+              >
+                {label}
+              </span>
+            ))}
+            <MoreCount count={memory.length - MAX_MEMORY_PILLS} />
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
 
 export function ProductCard({
   product,
@@ -19,13 +83,13 @@ export function ProductCard({
 
   return (
     <Card className="relative h-full w-full gap-0 py-0 transition-shadow duration-200 hover:shadow-(--shadow)">
-      <div className="relative aspect-[4/3] overflow-hidden bg-white">
+      <div className="relative aspect-[5/4] overflow-hidden bg-white">
         <ProductPhoto
           src={product.imageUrl}
           alt=""
           brand={product.brand.name}
           width={560}
-          height={420}
+          height={448}
           sizes="(max-width: 680px) 100vw, 300px"
           priority={priority}
           className="p-5"
@@ -33,19 +97,12 @@ export function ProductCard({
       </div>
 
       <CardContent className="flex flex-1 flex-col px-5 pt-3 pb-0">
-        <p className="eyebrow">{product.brand.name}</p>
-        <h3 className="m-0 line-clamp-2 min-h-[2.6em] text-base leading-[1.3] font-semibold tracking-[-0.01em]">
+        <h3 className="m-0 line-clamp-2 min-h-[2.6em] text-base leading-[1.3] font-bold tracking-[-0.01em]">
           {product.name}
         </h3>
-        <div className="mt-3 flex min-h-5 flex-wrap gap-1.5">
-          {product.conditions.slice(0, 2).map((condition) => (
-            <Badge variant="secondary" key={condition}>
-              {condition}
-            </Badge>
-          ))}
-        </div>
-        <div className="mt-auto grid grid-cols-[1fr_auto] items-baseline pt-4">
-          <small className="col-span-full text-xs text-muted-foreground">
+        <ProductOptions options={product.options} />
+        <div className="mt-auto flex flex-wrap items-baseline gap-x-1.5 pt-4">
+          <small className="text-xs text-muted-foreground">
             {hasPrice ? "From" : "Price"}
           </small>
           <strong
@@ -60,14 +117,14 @@ export function ProductCard({
           {hasPrice &&
           product.srpPrice !== null &&
           product.srpPrice > (product.cashPriceFrom ?? 0) ? (
-            <del className="text-xs text-[var(--warm-500)]">
+            <del className="ml-auto text-xs text-[var(--warm-500)]">
               {formatPeso(product.srpPrice)}
             </del>
           ) : null}
         </div>
       </CardContent>
 
-      <CardFooter className="border-0 bg-transparent px-5 pt-2 pb-5 text-xs text-muted-foreground">
+      <CardFooter className="border-0 bg-transparent px-5 pt-1.5 pb-5 text-xs text-muted-foreground">
         <span>Available at {locationLabel}</span>
       </CardFooter>
 

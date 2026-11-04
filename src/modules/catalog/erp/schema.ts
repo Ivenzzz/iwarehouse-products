@@ -31,6 +31,15 @@ export const productSummaryDtoSchema = z.object({
   description: z.string().nullable(),
   image_url: z.string().nullable(),
   conditions: z.array(z.string()),
+  // Optional so the storefront and ERP can deploy in either order.
+  options: z
+    .object({
+      colors: z.array(z.string()),
+      configurations: z.array(
+        z.object({ ram: z.string().nullable(), rom: z.string().nullable() }),
+      ),
+    })
+    .optional(),
   cash_price_from: z.number().nullable(),
   srp_price: z.number().nullable(),
   locations: z.array(locationDtoSchema),

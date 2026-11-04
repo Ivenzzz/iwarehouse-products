@@ -35,6 +35,14 @@ const summary = {
   description: "A flagship phone ready at selected iWarehouse stores.",
   image_url: null,
   conditions: ["Brand New"],
+  options: {
+    colors: ["Black", "Ice Blue", "Natural Titanium"],
+    configurations: [
+      { ram: "8GB", rom: "256GB" },
+      { ram: "12GB", rom: "512GB" },
+      { ram: "12GB", rom: "1TB" },
+    ],
+  },
   cash_price_from: 42000,
   srp_price: 47000,
   locations: [location],

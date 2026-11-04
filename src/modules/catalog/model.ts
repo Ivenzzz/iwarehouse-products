@@ -37,6 +37,16 @@ export interface CatalogVariant {
   locations: CatalogLocation[];
 }
 
+export interface CatalogMemoryConfiguration {
+  ram: string | null;
+  rom: string | null;
+}
+
+export interface CatalogProductOptions {
+  colors: string[];
+  configurations: CatalogMemoryConfiguration[];
+}
+
 export interface CatalogProductSummary {
   id: number;
   slug: string;
@@ -46,6 +56,7 @@ export interface CatalogProductSummary {
   description: string | null;
   imageUrl: string | null;
   conditions: string[];
+  options: CatalogProductOptions;
   cashPriceFrom: number | null;
   srpPrice: number | null;
   locations: CatalogLocation[];

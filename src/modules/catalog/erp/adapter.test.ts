@@ -5,6 +5,45 @@ import {
 } from "./adapter";
 
 describe("ERP catalog adapter", () => {
+  it("defaults to no options when the ERP does not send them yet", async () => {
+    const fetcher = vi.fn<typeof fetch>(async () =>
+      new Response(
+        JSON.stringify({
+          data: [
+            {
+              id: 17,
+              slug: "apple-iphone-17-pro",
+              name: "Apple iPhone 17 Pro",
+              brand: { id: 1, name: "Apple" },
+              category: { id: 2, name: "Smartphones", parent: null },
+              description: null,
+              image_url: null,
+              conditions: [],
+              cash_price_from: null,
+              srp_price: null,
+              locations: [],
+              updated_at: null,
+            },
+          ],
+          meta: { current_page: 1, per_page: 24, total: 1, last_page: 1 },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+    const source = createErpCatalogSource({
+      baseUrl: "https://erp.example.test/api/v1/catalog/",
+      token: "secret-token",
+      fetcher,
+    });
+
+    const products = await source.getProducts({});
+
+    expect(products.data[0].options).toEqual({
+      colors: [],
+      configurations: [],
+    });
+  });
+
   it("authenticates, serializes queries, and maps product DTOs", async () => {
     const fetcher = vi.fn<typeof fetch>(async () =>
       new Response(
@@ -23,6 +62,10 @@ describe("ERP catalog adapter", () => {
               description: null,
               image_url: null,
               conditions: ["Brand New"],
+              options: {
+                colors: ["Black"],
+                configurations: [{ ram: "8GB", rom: "256GB" }],
+              },
               cash_price_from: 42000,
               srp_price: 47000,
               locations: [],
@@ -56,6 +99,10 @@ describe("ERP catalog adapter", () => {
         {
           id: 17,
           imageUrl: null,
+          options: {
+            colors: ["Black"],
+            configurations: [{ ram: "8GB", rom: "256GB" }],
+          },
           cashPriceFrom: 42000,
           updatedAt: "2026-08-04T00:00:00+08:00",
         },
