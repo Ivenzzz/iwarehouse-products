@@ -20,7 +20,8 @@ function MoreCount({ count }: { count: number }) {
 
 /**
  * Options are display only, so the visible rows are hidden from screen readers
- * in favor of one complete sentence that includes what doesn't fit.
+ * in favor of one complete sentence that includes what doesn't fit. Both rows
+ * keep their fixed height when empty, so every card is the same height.
  */
 function ProductOptions({
   options,
@@ -32,39 +33,43 @@ function ProductOptions({
 
   return (
     <>
-      {colors.length > 0 ? (
-        <div className="mt-3">
-          <p className="sr-only">Available colors: {colors.join(", ")}</p>
-          <div className="flex items-center gap-1.5" aria-hidden="true">
-            {colors.slice(0, MAX_SWATCHES).map((color) => (
-              <span
-                className="size-3.5 rounded-full ring-1 ring-[var(--warm-300)]"
-                data-slot="swatch"
-                key={color}
-                style={{ backgroundColor: swatchColor(color) }}
-                title={color}
-              />
-            ))}
-            <MoreCount count={colors.length - MAX_SWATCHES} />
-          </div>
-        </div>
-      ) : null}
-      {memory.length > 0 ? (
-        <div className="mt-2.5">
-          <p className="sr-only">Available memory: {memory.join(", ")}</p>
-          <div className="flex items-center gap-1.5" aria-hidden="true">
-            {memory.slice(0, MAX_MEMORY_PILLS).map((label) => (
-              <span
-                className="rounded-full border border-border px-2 py-0.5 text-xs font-semibold whitespace-nowrap"
-                key={label}
-              >
-                {label}
-              </span>
-            ))}
-            <MoreCount count={memory.length - MAX_MEMORY_PILLS} />
-          </div>
-        </div>
-      ) : null}
+      <div className="mt-3 h-4">
+        {colors.length > 0 ? (
+          <>
+            <p className="sr-only">Available colors: {colors.join(", ")}</p>
+            <div className="flex h-full items-center gap-1.5" aria-hidden="true">
+              {colors.slice(0, MAX_SWATCHES).map((color) => (
+                <span
+                  className="size-3.5 rounded-full ring-1 ring-[var(--warm-300)]"
+                  data-slot="swatch"
+                  key={color}
+                  style={{ backgroundColor: swatchColor(color) }}
+                  title={color}
+                />
+              ))}
+              <MoreCount count={colors.length - MAX_SWATCHES} />
+            </div>
+          </>
+        ) : null}
+      </div>
+      <div className="mt-2.5 h-6">
+        {memory.length > 0 ? (
+          <>
+            <p className="sr-only">Available memory: {memory.join(", ")}</p>
+            <div className="flex h-full items-center gap-1.5" aria-hidden="true">
+              {memory.slice(0, MAX_MEMORY_PILLS).map((label) => (
+                <span
+                  className="rounded-full border border-border px-2 py-0.5 text-xs font-semibold whitespace-nowrap"
+                  key={label}
+                >
+                  {label}
+                </span>
+              ))}
+              <MoreCount count={memory.length - MAX_MEMORY_PILLS} />
+            </div>
+          </>
+        ) : null}
+      </div>
     </>
   );
 }
@@ -83,7 +88,7 @@ export function ProductCard({
 
   return (
     <Card className="relative h-full w-full gap-0 py-0 transition-shadow duration-200 hover:shadow-(--shadow)">
-      <div className="relative aspect-[5/4] overflow-hidden bg-white">
+      <div className="relative h-[226px] overflow-hidden bg-white">
         <ProductPhoto
           src={product.imageUrl}
           alt=""
@@ -101,7 +106,7 @@ export function ProductCard({
           {product.name}
         </h3>
         <ProductOptions options={product.options} />
-        <div className="mt-auto flex flex-wrap items-baseline gap-x-1.5 pt-4">
+        <div className="mt-auto flex items-baseline gap-x-1.5 whitespace-nowrap pt-4">
           <small className="text-xs text-muted-foreground">
             {hasPrice ? "From" : "Price"}
           </small>
