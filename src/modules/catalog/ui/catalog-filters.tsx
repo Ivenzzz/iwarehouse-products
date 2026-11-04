@@ -28,7 +28,7 @@ export function CatalogFilterForm({
 
   return (
     <form
-      className="sticky top-24 rounded-[15px] border border-border bg-white p-5 [&_.field]:mt-[15px] [&_.field]:block [&_.field>label]:mb-[7px] [&_.field>label]:text-[0.67rem] [&_.field>label]:font-extrabold max-[980px]:static max-[980px]:grid max-[980px]:grid-cols-3 max-[980px]:gap-x-[14px] max-[680px]:grid-cols-1"
+      className="sticky top-24 rounded-[15px] border border-border bg-card p-5 [&_.field]:mt-[15px] [&_.field]:block [&_.field>label]:mb-[7px] [&_.field>label]:text-[0.67rem] [&_.field>label]:font-extrabold max-[980px]:static max-[980px]:grid max-[980px]:grid-cols-3 max-[980px]:gap-x-[14px] max-[680px]:grid-cols-1"
       action="/products"
       method="get"
     >

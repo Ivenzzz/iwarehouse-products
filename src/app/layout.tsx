@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
@@ -22,6 +22,10 @@ export const metadata: Metadata = {
     title: "iWarehouse Products",
     description: "Find current products, prices, and store availability.",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default async function RootLayout({

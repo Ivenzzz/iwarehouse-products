@@ -20,7 +20,7 @@ export function ProductCard({
 
   return (
     <Card className="group relative gap-0 py-0 transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow) hover:ring-brand/40">
-      <div className="relative aspect-1.35 overflow-hidden bg-linear-to-br from-(--warm-50) to-(--warm-100)">
+      <div className="relative aspect-1.35 overflow-hidden bg-white">
         <Image
           src={product.imageUrl || "/product-placeholder.svg"}
           alt=""

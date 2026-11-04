@@ -28,7 +28,7 @@ export function StoreDirectoryView({
       </p>
 
       {directory.groups.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border bg-white p-12 text-center">
+        <div className="mt-10 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border bg-card p-12 text-center">
           <Store
             className="size-8 text-muted-foreground"
             aria-hidden="true"
@@ -50,7 +50,7 @@ export function StoreDirectoryView({
             <div className="grid grid-cols-2 gap-4 max-[980px]:grid-cols-1">
               {group.locations.map((location) => (
                 <article
-                  className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-5 shadow-(--shadow-sm)"
+                  className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-(--shadow-sm)"
                   key={location.id}
                 >
                   <div className="flex items-start justify-between gap-3">

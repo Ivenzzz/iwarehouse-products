@@ -75,7 +75,7 @@ export function VariantBrowser({
                 className={`flex min-h-[63px] w-full cursor-pointer flex-col items-start rounded-[10px] border px-[14px] py-[11px] text-left text-foreground ${
                   item.id === variant.id
                     ? "border-brand bg-[var(--brand-50)] shadow-[0_0_0_2px_var(--brand-a08)]"
-                    : "border-[var(--warm-300)] bg-white"
+                    : "border-[var(--warm-300)] bg-card"
                 }`}
                 key={item.id}
                 type="button"

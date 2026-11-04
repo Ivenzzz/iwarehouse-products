@@ -50,7 +50,7 @@ export function HomeCatalogSections({
                   </p>
                   <span
                     aria-hidden="true"
-                    className="mt-auto grid size-9 place-items-center rounded-full bg-card text-brand shadow-(--shadow-sm) ring-1 ring-foreground/10 transition-colors duration-200 group-hover/card:bg-brand group-hover/card:text-white"
+                    className="mt-auto grid size-9 place-items-center rounded-full bg-card text-brand shadow-(--shadow-sm) ring-1 ring-foreground/10 transition-colors duration-200 group-hover/card:bg-brand group-hover/card:text-primary-foreground"
                   >
                     <ChevronRight className="size-4" />
                   </span>

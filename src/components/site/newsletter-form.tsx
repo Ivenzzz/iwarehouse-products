@@ -39,7 +39,7 @@ export function NewsletterForm() {
       <button
         type="submit"
         aria-label="Subscribe for updates"
-        className="absolute top-1/2 right-1.5 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-brand text-white transition-colors hover:bg-[var(--brand-600)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-400)]"
+        className="absolute top-1/2 right-1.5 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-brand text-primary-foreground transition-colors hover:bg-[var(--brand-600)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-400)]"
       >
         <ArrowRight className="size-4" aria-hidden="true" />
       </button>

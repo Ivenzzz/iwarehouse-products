@@ -7,60 +7,47 @@
 /*
  * iWarehouse design tokens. Components consume the semantic shadcn names;
  * feature-specific layout and state styling lives with the owning markup.
+ *
+ * The site is light, with black, white, and brand orange. --brand is the fill
+ * and carries black text, because white fails contrast against it. --primary
+ * is the darker orange for text, because --brand is too faint on white.
  */
 :root {
-  --brand-50: #fff4ee;
-  --brand-100: #ffe3d2;
-  --brand-200: #fdc4a1;
-  --brand-300: #f99c68;
-  --brand-400: #f58043;
-  --brand-500: #f26522;
-  --brand-600: #d9520f;
-  --brand-700: #c2410c;
-  --brand-800: #99340a;
-  --brand-900: #6b2505;
+  /* 400 is for dark sections only; 50 is a light tint. */
+  --brand-50: #fff1e6;
+  --brand-400: #ff8a33;
+  --brand-500: #ff6d00;
+  --brand-600: #e65f00;
+  --brand-700: #b84a00;
 
-  --warm-50: #faf7f4;
-  --warm-100: #f3eee9;
-  --warm-200: #e8e2db;
-  --warm-300: #d6cec5;
-  --warm-400: #a99f94;
-  --warm-500: #7a7067;
-  --warm-600: #6e6259;
-  --warm-700: #4a423b;
-  --warm-800: #2a231d;
-  --warm-900: #16110d;
+  --warm-50: #f7f7f5;
+  --warm-100: #efefeb;
+  --warm-200: #e2e2dd;
+  --warm-300: #8f8f86;
+  --warm-400: #7a7a71;
+  --warm-500: #6b6b63;
+  --warm-600: #55554e;
+  --warm-700: #33332f;
+  --warm-800: #1c1c1a;
+  --warm-900: #000000;
 
   --canvas: var(--warm-50);
   --brand: var(--brand-500);
   --success: #15794f;
   --success-soft: #eaf6f0;
-  --night: #14100c;
-  --night-raised: #1d1813;
-  --night-copy: #c9bfb6;
+  --night: #000000;
+  --night-raised: #161614;
+  --night-copy: #bdbdb3;
 
-  --tint-1-bg: #ffede0;
-  --tint-1-fg: #c2410c;
-  --tint-2-bg: #fbeadf;
-  --tint-2-fg: #9a4a16;
-  --tint-3-bg: #fff4e3;
-  --tint-3-fg: #a86410;
-  --tint-4-bg: #f4ede5;
-  --tint-4-fg: #6b4a2a;
+  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.04);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.09);
+  --shadow-brand: 0 8px 18px rgba(255, 109, 0, 0.22);
+  --shadow-raise: 0 15px 38px rgba(0, 0, 0, 0.1);
 
-  --shadow-sm: 0 4px 15px rgba(38, 22, 10, 0.04);
-  --shadow: 0 18px 50px rgba(38, 22, 10, 0.09);
-  --shadow-brand: 0 8px 18px rgba(242, 101, 34, 0.22);
-  --shadow-raise: 0 15px 38px rgba(38, 22, 10, 0.1);
-
-  --brand-a08: rgba(242, 101, 34, 0.08);
-  --brand-a16: rgba(242, 101, 34, 0.16);
-  --brand-a20: rgba(242, 101, 34, 0.2);
-  --brand-a22: rgba(242, 101, 34, 0.22);
-  --brand-a34: rgba(242, 101, 34, 0.34);
-  --warm-a05: rgba(60, 35, 15, 0.045);
-  --border-a82: rgba(232, 226, 219, 0.82);
-  --orb-soft: rgba(255, 213, 184, 0.14);
+  --brand-a08: rgba(255, 109, 0, 0.08);
+  --brand-a20: rgba(255, 109, 0, 0.2);
+  --brand-a34: rgba(255, 109, 0, 0.34);
+  --border-a82: rgba(226, 226, 221, 0.82);
   --success-line: rgba(21, 121, 79, 0.14);
 
   --background: #ffffff;
@@ -70,7 +57,7 @@
   --popover: #ffffff;
   --popover-foreground: var(--warm-900);
   --primary: var(--brand-700);
-  --primary-foreground: #ffffff;
+  --primary-foreground: #000000;
   --secondary: var(--warm-100);
   --secondary-foreground: var(--warm-700);
   --muted: var(--warm-100);
@@ -172,50 +159,18 @@
 .hero {
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 8% 10%, var(--brand-a16), transparent 25%),
-    linear-gradient(
-      125deg,
-      var(--background) 0%,
-      var(--brand-50) 51%,
-      var(--brand-100) 100%
-    );
-}
-
-.hero::before {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--warm-a05) 1px, transparent 1px),
-    linear-gradient(90deg, var(--warm-a05) 1px, transparent 1px);
-  background-size: 44px 44px;
-  content: "";
-  mask-image: linear-gradient(to right, black, transparent 74%);
+  background: var(--warm-100);
 }
 
 /*
  * The hero collage is a transparent product cutout supplied by the ERP;
- * the warm glow and pedestal shadow that ground it stay in CSS so any
- * upload still sits on-brand.
+ * the pedestal shadow that grounds it stays in CSS so any upload still sits
+ * on the surface.
  */
 .hero-art {
   position: relative;
   min-height: 560px;
   isolation: isolate;
-}
-
-.hero-art::before {
-  position: absolute;
-  z-index: -1;
-  inset: -8% -12%;
-  background: radial-gradient(
-    ellipse 60% 52% at 55% 46%,
-    var(--brand-a22),
-    var(--orb-soft) 58%,
-    transparent 80%
-  );
-  content: "";
-  filter: blur(8px);
 }
 
 .hero-art::after {
@@ -227,7 +182,7 @@
   height: 42px;
   background: radial-gradient(
     ellipse at center,
-    rgba(38, 22, 10, 0.18),
+    rgba(0, 0, 0, 0.18),
     transparent 68%
   );
   content: "";
@@ -246,7 +201,7 @@
 
 .catalog-select {
   padding-right: 34px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237a7067' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b6b63' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 16px 16px;

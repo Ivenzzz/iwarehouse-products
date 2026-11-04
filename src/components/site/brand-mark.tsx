@@ -41,7 +41,7 @@ export function BrandMark({
       aria-label="iWarehouse home"
     >
       <span
-        className={`grid size-[39px] place-items-center rounded-[11px_5px_11px_5px] bg-linear-[145deg,var(--warm-800),var(--warm-900)] text-[0.83rem] font-black tracking-[-0.07em] text-brand shadow-(--shadow-sm) ${
+        className={`grid size-[39px] place-items-center rounded-[11px_5px_11px_5px] bg-linear-[145deg,var(--night-raised),var(--night)] text-[0.83rem] font-black tracking-[-0.07em] text-brand shadow-(--shadow-sm) ${
           tone === "dark" ? "border border-white/10" : ""
         }`}
         aria-hidden="true"

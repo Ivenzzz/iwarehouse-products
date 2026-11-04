@@ -38,7 +38,7 @@ export function ProductDetailView({
   };
 
   return (
-    <section className="bg-[linear-gradient(var(--warm-50)_0_580px,white_580px)] py-[78px] max-[680px]:py-[55px]">
+    <section className="bg-[linear-gradient(var(--canvas),var(--background)_580px)] py-[78px] max-[680px]:py-[55px]">
       <div className="shell">
         <Breadcrumb className="mb-8">
           <BreadcrumbList>

@@ -66,7 +66,7 @@ export default async function HomePage() {
               great-value tech available at iWarehouse.
             </p>
             <form
-              className="mt-[31px] flex max-w-[650px] items-center gap-3 rounded-[15px] border border-[var(--warm-300)] bg-white py-[7px] pr-[7px] pl-[18px] shadow-(--shadow-raise) max-[680px]:grid max-[680px]:grid-cols-[auto_1fr]"
+              className="mt-[31px] flex max-w-[650px] items-center gap-3 rounded-[15px] border border-[var(--warm-300)] bg-card py-[7px] pr-[7px] pl-[18px] shadow-(--shadow-raise) max-[680px]:grid max-[680px]:grid-cols-[auto_1fr]"
               action="/products"
             >
               <label className="sr-only" htmlFor="hero-q">
@@ -128,7 +128,7 @@ export default async function HomePage() {
               <Link
                 key={label}
                 href={{ pathname: "/products", query: { q: label } }}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--warm-300)] bg-white px-4 py-2 text-[0.78rem] font-bold text-[var(--warm-700)] shadow-(--shadow-sm) transition-colors hover:border-[var(--brand-a34)] hover:text-brand"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--warm-300)] bg-card px-4 py-2 text-[0.78rem] font-bold text-[var(--warm-700)] shadow-(--shadow-sm) transition-colors hover:border-[var(--brand-a34)] hover:text-primary"
               >
                 <Icon className="size-3.5 shrink-0" aria-hidden="true" />
                 {label}
@@ -154,7 +154,7 @@ export default async function HomePage() {
           </div>
           <Button
             asChild
-            className="h-11 min-w-52 bg-background px-6 text-[0.83rem] font-extrabold text-primary hover:bg-background/90 max-[680px]:w-full"
+            className="h-11 min-w-52 px-6 text-[0.83rem] font-extrabold max-[680px]:w-full"
           >
             <Link href="/products">Browse store availability</Link>
           </Button>
