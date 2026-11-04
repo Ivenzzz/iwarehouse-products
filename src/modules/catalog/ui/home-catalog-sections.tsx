@@ -19,29 +19,23 @@ function ProductRow({
   priority: boolean;
 }) {
   return (
-    <section className="py-8 max-[680px]:py-6">
-      <ScrollRow
-        label={row.title.replace(/\.$/, "")}
-        header={<SectionHeading title={row.title} note={row.note} />}
-        action={
-          <Link
-            className="text-sm font-semibold whitespace-nowrap text-primary hover:underline"
-            href={row.href}
-          >
-            See all
-            <span className="sr-only"> {row.title.replace(/\.$/, "")}</span>
-          </Link>
-        }
-        itemClassName="w-[280px] max-[680px]:w-[260px]"
-      >
-        {row.products.map((product, index) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            priority={priority && index < 4}
-          />
+    <section className="shell py-8 max-[680px]:py-6">
+      <div className="mb-5 flex items-end justify-between gap-6">
+        <SectionHeading title={row.title} note={row.note} />
+        <Link
+          className="shrink-0 text-sm font-semibold whitespace-nowrap text-primary hover:underline"
+          href={row.href}
+        >
+          See all
+          <span className="sr-only"> {row.title.replace(/\.$/, "")}</span>
+        </Link>
+      </div>
+      {/* Two columns below 1100px, so four cards never leave one alone on a row. */}
+      <div className="grid grid-cols-4 gap-4 max-[1100px]:grid-cols-2 max-[560px]:grid-cols-1">
+        {row.products.map((product) => (
+          <ProductCard key={product.id} product={product} priority={priority} />
         ))}
-      </ScrollRow>
+      </div>
     </section>
   );
 }

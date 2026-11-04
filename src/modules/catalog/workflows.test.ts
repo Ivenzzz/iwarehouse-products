@@ -98,24 +98,23 @@ describe("catalog workflows", () => {
       await createCatalogWorkflows(source).loadHomeCatalog();
 
       expect(productQueries).toEqual([
-        { sort: "newest", perPage: "12" },
-        { sort: "newest", category: "2", perPage: "20" },
-        { sort: "newest", category: "9", perPage: "20" },
+        { sort: "newest", perPage: "4" },
+        { sort: "newest", category: "2", perPage: "12" },
+        { sort: "newest", category: "9", perPage: "12" },
       ]);
     });
 
-    it("still fills a category row to 8 after removing duplicates", async () => {
-      const newest = [1, 2, 3, 4, 5].map(productWithId);
-      const phones = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map(
-        productWithId,
-      );
+    it("still fills a category row to 4 after removing duplicates", async () => {
+      const newest = [1, 2, 3, 4].map(productWithId);
+      const phones = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(productWithId);
       const source = stubSource({
         getProducts: async (query) =>
           page(query.category === "2" ? phones : newest),
       });
 
       await expect(rowsById(source)).resolves.toMatchObject({
-        smartphones: [6, 7, 8, 9, 10, 11, 12, 13],
+        newest: [1, 2, 3, 4],
+        smartphones: [5, 6, 7, 8],
       });
     });
 

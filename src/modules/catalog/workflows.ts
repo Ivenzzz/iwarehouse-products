@@ -73,14 +73,13 @@ const NEWEST_ROW: HomeRowDefinition = {
   title: "Recently available.",
   note: "Fresh in store.",
   href: "/products?sort=newest",
-  query: { sort: "newest", perPage: "12" },
+  query: { sort: "newest", perPage: "4" },
 };
 
-const MAX_PRODUCTS_PER_ROW = 12;
-const MAX_PRODUCTS_PER_CATEGORY_ROW = 8;
+const PRODUCTS_PER_ROW = 4;
 
 // Category ids match the curated storefront aisles in ui/home-categories.ts.
-// Each fetches more than it shows, because the newest row often already holds
+// Each fetches more than it shows, because the rows above often already hold
 // a category's latest products and those are removed as duplicates.
 const CATEGORY_ROWS: HomeRowDefinition[] = [
   {
@@ -88,14 +87,14 @@ const CATEGORY_ROWS: HomeRowDefinition[] = [
     title: "Smartphones.",
     note: "The latest phones.",
     href: "/products?category=2&sort=newest",
-    query: { sort: "newest", category: "2", perPage: "20" },
+    query: { sort: "newest", category: "2", perPage: "12" },
   },
   {
     id: "laptops",
     title: "Laptops & computers.",
     note: "For work and play.",
     href: "/products?category=9&sort=newest",
-    query: { sort: "newest", category: "9", perPage: "20" },
+    query: { sort: "newest", category: "9", perPage: "12" },
   },
 ];
 
@@ -103,15 +102,14 @@ function buildHomeRows(
   rows: Array<{
     definition: HomeRowDefinition;
     products: CatalogProductSummary[];
-    limit: number;
   }>,
 ): HomeProductRow[] {
   const seen = new Set<number>();
 
-  return rows.flatMap(({ definition, products, limit }) => {
+  return rows.flatMap(({ definition, products }) => {
     const unique = products
       .filter((product) => !seen.has(product.id))
-      .slice(0, limit);
+      .slice(0, PRODUCTS_PER_ROW);
     unique.forEach((product) => seen.add(product.id));
     if (unique.length === 0) return [];
 
@@ -136,11 +134,7 @@ export function createCatalogWorkflows(source: CatalogSource) {
         const categoryRows = categoryResults.flatMap((result, index) => {
           if (result.status === "fulfilled") {
             return [
-              {
-                definition: CATEGORY_ROWS[index],
-                products: result.value.data,
-                limit: MAX_PRODUCTS_PER_CATEGORY_ROW,
-              },
+              { definition: CATEGORY_ROWS[index], products: result.value.data },
             ];
           }
           if (result.reason instanceof CatalogSourceError) return [];
@@ -152,11 +146,7 @@ export function createCatalogWorkflows(source: CatalogSource) {
           data: {
             filters,
             rows: buildHomeRows([
-              {
-                definition: NEWEST_ROW,
-                products: newest.data,
-                limit: MAX_PRODUCTS_PER_ROW,
-              },
+              { definition: NEWEST_ROW, products: newest.data },
               ...categoryRows,
             ]),
           },
