@@ -21,13 +21,13 @@ function ProductRow({
   return (
     <section className="shell py-8 max-[680px]:py-6">
       <div className="mb-5 flex items-end justify-between gap-6">
-        <SectionHeading title={row.title} note={row.note} />
+        <SectionHeading title={row.title} />
         <Link
           className="shrink-0 text-sm font-semibold whitespace-nowrap text-primary hover:underline"
           href={row.href}
         >
           See all
-          <span className="sr-only"> {row.title.replace(/\.$/, "")}</span>
+          <span className="sr-only"> {row.title}</span>
         </Link>
       </div>
       {/* Two columns below 1100px, so four cards never leave one alone on a row. */}
@@ -56,12 +56,7 @@ export function HomeCatalogSections({
         <section className="py-8 max-[680px]:py-6">
           <ScrollRow
             label="Categories"
-            header={
-              <SectionHeading
-                title="Shop by category."
-                note="Pick where to start."
-              />
-            }
+            header={<SectionHeading title="Shop by category" />}
             itemClassName="w-[132px] max-[680px]:w-[104px]"
           >
             {homeCategories.map((category) => (

@@ -136,7 +136,6 @@ export type CatalogOutcome<T> =
 export interface HomeProductRow {
   id: string;
   title: string;
-  note: string;
   href: string;
   products: CatalogProductSummary[];
 }

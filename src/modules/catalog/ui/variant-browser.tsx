@@ -103,7 +103,7 @@ export function VariantBrowser({
         <section className="mt-10" id="locations">
           <div className="mb-4 flex items-end justify-between gap-4 max-[680px]:flex-col max-[680px]:items-start max-[680px]:gap-1">
             <SectionHeading
-              title="Available locations."
+              title="Available locations"
               className="text-xl max-[680px]:text-xl"
             />
             <span className="shrink-0 text-xs text-muted-foreground">

@@ -1,15 +1,12 @@
 import { cn } from "@/lib/utils";
 
-/** A two-tone heading: the title in black, then a short note in gray. */
 export function SectionHeading({
   as: Tag = "h2",
   title,
-  note,
   className,
 }: {
   as?: "h1" | "h2";
   title: string;
-  note?: string;
   className?: string;
 }) {
   return (
@@ -23,12 +20,6 @@ export function SectionHeading({
       )}
     >
       {title}
-      {note ? (
-        <>
-          {" "}
-          <span className="text-[var(--warm-500)]">{note}</span>
-        </>
-      ) : null}
     </Tag>
   );
 }

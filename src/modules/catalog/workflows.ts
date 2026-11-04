@@ -70,8 +70,7 @@ interface HomeRowDefinition extends Omit<HomeProductRow, "products"> {
 
 const NEWEST_ROW: HomeRowDefinition = {
   id: "newest",
-  title: "Recently available.",
-  note: "Fresh in store.",
+  title: "Recently available",
   href: "/products?sort=newest",
   query: { sort: "newest", perPage: "4" },
 };
@@ -84,15 +83,13 @@ const PRODUCTS_PER_ROW = 4;
 const CATEGORY_ROWS: HomeRowDefinition[] = [
   {
     id: "smartphones",
-    title: "Smartphones.",
-    note: "The latest phones.",
+    title: "Smartphones",
     href: "/products?category=2&sort=newest",
     query: { sort: "newest", category: "2", perPage: "12" },
   },
   {
     id: "laptops",
-    title: "Laptops & computers.",
-    note: "For work and play.",
+    title: "Laptops & computers",
     href: "/products?category=9&sort=newest",
     query: { sort: "newest", category: "9", perPage: "12" },
   },
@@ -113,8 +110,8 @@ function buildHomeRows(
     unique.forEach((product) => seen.add(product.id));
     if (unique.length === 0) return [];
 
-    const { id, title, note, href } = definition;
-    return [{ id, title, note, href, products: unique }];
+    const { id, title, href } = definition;
+    return [{ id, title, href, products: unique }];
   });
 }
 

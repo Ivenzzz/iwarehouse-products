@@ -20,8 +20,7 @@ export function StoreDirectoryView({
     <section className="shell py-14 max-[680px]:py-9">
       <SectionHeading
         as="h1"
-        title="Our stores."
-        note="Call ahead or get directions."
+        title="Our stores"
       />
       <p className="mt-4 mb-0 max-w-[65ch] text-base leading-[1.6] text-muted-foreground">
         Availability is informational and does not reserve an item — contact the

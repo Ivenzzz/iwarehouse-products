@@ -64,8 +64,7 @@ export function ProductDetailView({
         {product.specifications.length ? (
           <section className="mt-16 max-[680px]:mt-12">
             <SectionHeading
-              title="Product specifications."
-              note="The details."
+              title="Product specifications"
               className="mb-5"
             />
             <div className="grid grid-cols-2 items-start gap-4 max-[680px]:grid-cols-1">
