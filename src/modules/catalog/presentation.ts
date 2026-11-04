@@ -1,4 +1,15 @@
-import type { CatalogLocation } from "./model";
+import type { CatalogLocation, StoreDirectoryViewModel } from "./model";
+
+/** The phone number customers reach first: the first store that lists one. */
+export function firstStorePhone(
+  directory: StoreDirectoryViewModel,
+): string | null {
+  return (
+    directory.groups
+      .flatMap((group) => group.locations)
+      .find((location) => location.phone)?.phone ?? null
+  );
+}
 
 export function formatPeso(value: number | null): string {
   // A zero price is placeholder data, never a real offer — treat it as unpriced.

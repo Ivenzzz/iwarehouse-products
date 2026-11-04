@@ -9,11 +9,9 @@ export interface BrandLogo {
 
 export function BrandMark({
   logo,
-  tone = "light",
   tagline = "Products",
 }: {
   logo?: BrandLogo | null;
-  tone?: "light" | "dark";
   tagline?: string;
 }) {
   if (logo) {
@@ -26,9 +24,9 @@ export function BrandMark({
         <Image
           src={logo.url}
           alt={logo.name || "iWarehouse"}
-          width={160}
-          height={39}
-          className="h-[39px] w-auto object-contain"
+          width={132}
+          height={32}
+          className="h-8 w-auto object-contain"
         />
       </Link>
     );
@@ -36,31 +34,21 @@ export function BrandMark({
 
   return (
     <Link
-      className="inline-flex items-center gap-[11px] leading-none"
+      className="inline-flex items-center gap-2.5 leading-none"
       href="/"
       aria-label="iWarehouse home"
     >
       <span
-        className={`grid size-[39px] place-items-center rounded-[11px_5px_11px_5px] bg-linear-[145deg,var(--night-raised),var(--night)] text-[0.83rem] font-black tracking-[-0.07em] text-brand shadow-(--shadow-sm) ${
-          tone === "dark" ? "border border-white/10" : ""
-        }`}
+        className="grid size-8 place-items-center rounded-[9px_4px_9px_4px] bg-linear-[145deg,var(--night-raised),var(--night)] text-[0.72rem] font-bold tracking-[-0.04em] text-brand"
         aria-hidden="true"
       >
         iW
       </span>
       <span>
-        <strong
-          className={`block text-[1.02rem] tracking-[-0.04em] ${
-            tone === "dark" ? "text-white" : ""
-          }`}
-        >
+        <strong className="block text-[0.95rem] font-bold tracking-[-0.02em]">
           <i className="not-italic text-brand">i</i>Warehouse
         </strong>
-        <small
-          className={`mt-1 block text-[0.62rem] font-bold tracking-[0.15em] uppercase ${
-            tone === "dark" ? "text-[var(--brand-400)]" : "text-muted-foreground"
-          }`}
-        >
+        <small className="mt-0.5 block text-[0.6875rem] text-muted-foreground">
           {tagline}
         </small>
       </span>

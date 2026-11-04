@@ -22,6 +22,7 @@ export type {
   SitemapProduct,
   StoreDirectoryViewModel,
 } from "./model";
+export { firstStorePhone } from "./presentation";
 export { BrowseCatalogView } from "./ui/browse-catalog-view";
 export { CatalogUnavailableView } from "./ui/catalog-unavailable-view";
 export { HomeCatalogSections } from "./ui/home-catalog-sections";

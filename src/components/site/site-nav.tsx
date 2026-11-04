@@ -55,7 +55,7 @@ export function SiteNav({ nav }: { nav: SiteNavData }) {
                     <NavigationMenuLink asChild>
                       <Link
                         href={`/products?category=${category.id}`}
-                        className="text-[0.8rem] font-extrabold text-foreground"
+                        className="text-sm font-semibold text-foreground"
                       >
                         {category.name}
                       </Link>
@@ -67,7 +67,7 @@ export function SiteNav({ nav }: { nav: SiteNavData }) {
                             <NavigationMenuLink asChild>
                               <Link
                                 href={`/products?category=${child.id}`}
-                                className="text-[0.76rem] font-bold text-[var(--warm-600)]"
+                                className="text-sm text-[var(--warm-600)]"
                               >
                                 {child.name}
                               </Link>
@@ -95,7 +95,7 @@ export function SiteNav({ nav }: { nav: SiteNavData }) {
                     <NavigationMenuLink asChild>
                       <Link
                         href={`/products?brand=${brand.id}`}
-                        className="rounded-lg px-2 py-1.5 text-[0.78rem] font-bold text-[var(--warm-700)] hover:bg-[var(--brand-50)]"
+                        className="rounded-lg px-2 py-1.5 text-sm text-[var(--warm-700)] hover:bg-[var(--brand-50)]"
                       >
                         {brand.name}
                       </Link>

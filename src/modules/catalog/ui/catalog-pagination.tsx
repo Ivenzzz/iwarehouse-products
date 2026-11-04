@@ -28,7 +28,7 @@ export function CatalogPagination({
       <PaginationContent className="w-full justify-between gap-4">
         <PaginationItem>
           {meta.currentPage > 1 ? (
-            <Button asChild variant="ghost" size="default" className="font-extrabold text-primary">
+            <Button asChild variant="outline" className="h-10 px-4 text-primary">
               <Link
                 href={`/products${joinQuery(query, { page: meta.currentPage - 1 })}`}
                 aria-label="Go to previous page"
@@ -42,13 +42,13 @@ export function CatalogPagination({
           )}
         </PaginationItem>
 
-        <PaginationItem className="text-xs text-muted-foreground">
+        <PaginationItem className="text-sm text-muted-foreground">
           Page {meta.currentPage} of {meta.lastPage}
         </PaginationItem>
 
         <PaginationItem>
           {meta.currentPage < meta.lastPage ? (
-            <Button asChild variant="ghost" size="default" className="font-extrabold text-primary">
+            <Button asChild variant="outline" className="h-10 px-4 text-primary">
               <Link
                 href={`/products${joinQuery(query, { page: meta.currentPage + 1 })}`}
                 aria-label="Go to next page"

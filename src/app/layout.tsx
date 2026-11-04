@@ -3,6 +3,7 @@ import { Manrope } from "next/font/google";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import {
+  firstStorePhone,
   loadSiteBranding,
   loadSiteNavigation,
   loadStoreLocations,
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#f4f4f2",
 };
 
 export default async function RootLayout({
@@ -39,11 +40,7 @@ export default async function RootLayout({
 
   // Footer chrome degrades gracefully: no reachable store phone, no Call Us.
   const contactPhone =
-    stores.status === "ready"
-      ? (stores.data.groups
-          .flatMap((group) => group.locations)
-          .find((location) => location.phone)?.phone ?? null)
-      : null;
+    stores.status === "ready" ? firstStorePhone(stores.data) : null;
 
   return (
     <html lang="en" data-scroll-behavior="smooth">

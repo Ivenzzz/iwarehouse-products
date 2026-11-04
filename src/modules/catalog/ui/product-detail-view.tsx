@@ -7,6 +7,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { SectionHeading } from "@/components/ui/section-heading";
 import type { ProductDetailViewModel } from "../model";
 import { VariantBrowser } from "./variant-browser";
 
@@ -38,9 +39,9 @@ export function ProductDetailView({
   };
 
   return (
-    <section className="bg-[linear-gradient(var(--canvas),var(--background)_580px)] py-[78px] max-[680px]:py-[55px]">
+    <section className="py-10 max-[680px]:py-6">
       <div className="shell">
-        <Breadcrumb className="mb-8">
+        <Breadcrumb className="mb-6">
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
@@ -61,32 +62,29 @@ export function ProductDetailView({
         </Breadcrumb>
         <VariantBrowser product={product} />
         {product.specifications.length ? (
-          <section className="mt-[100px] border-t border-border pt-[70px]">
-            <div className="mb-[30px] flex items-end justify-between gap-6 max-[680px]:flex-col max-[680px]:items-start">
-              <div>
-                <p className="eyebrow">The details</p>
-                <h2 className="m-0 text-[clamp(1.8rem,3vw,2.65rem)] tracking-[-0.05em] text-foreground">
-                  Product specifications
-                </h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-[18px] max-[680px]:grid-cols-1">
+          <section className="mt-16 max-[680px]:mt-12">
+            <SectionHeading
+              title="Product specifications."
+              note="The details."
+              className="mb-5"
+            />
+            <div className="grid grid-cols-2 items-start gap-4 max-[680px]:grid-cols-1">
               {product.specifications.map((group) => (
                 <article
-                  className="overflow-hidden rounded-[14px] border border-border"
+                  className="rounded-card bg-card p-5 shadow-(--shadow-sm)"
                   key={group.group}
                 >
-                  <h3 className="m-0 bg-[var(--brand-50)] px-[18px] py-[15px] text-[0.8rem] text-primary">
+                  <h3 className="m-0 mb-2 text-base font-bold">
                     {group.group}
                   </h3>
                   <dl className="m-0">
                     {group.items.map((item) => (
                       <div
-                        className="grid grid-cols-[0.8fr_1.2fr] gap-[15px] border-t border-[var(--warm-200)] px-[18px] py-3 text-[0.7rem]"
+                        className="grid grid-cols-[0.8fr_1.2fr] gap-4 border-t border-border py-2.5 text-sm first:border-t-0 last:pb-0"
                         key={item.key}
                       >
                         <dt className="text-muted-foreground">{item.label}</dt>
-                        <dd className="m-0 font-bold">{item.value}</dd>
+                        <dd className="m-0 font-semibold">{item.value}</dd>
                       </div>
                     ))}
                   </dl>

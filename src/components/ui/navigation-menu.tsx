@@ -61,7 +61,7 @@ function NavigationMenuItem({
 }
 
 const navigationMenuTriggerStyle = cva(
-  "group inline-flex h-9 w-max items-center justify-center rounded-full bg-transparent px-4 py-2 text-[0.85rem] font-bold text-[var(--warm-700)] transition-colors outline-none hover:text-primary focus-visible:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 data-[state=open]:text-primary"
+  "group inline-flex h-9 w-max items-center justify-center rounded-full bg-transparent px-3.5 py-2 text-sm font-semibold text-[var(--warm-700)] transition-colors outline-none hover:text-primary focus-visible:text-primary focus-visible:ring-3 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 data-[state=open]:text-primary"
 )
 
 function NavigationMenuTrigger({
@@ -109,7 +109,7 @@ function NavigationMenuViewport({
       <NavigationMenuPrimitive.Viewport
         data-slot="navigation-menu-viewport"
         className={cn(
-          "origin-top-center data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-2 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-[16px] border border-[var(--border-a82)] bg-card text-foreground shadow-(--shadow-raise) md:w-[var(--radix-navigation-menu-viewport-width)]",
+          "origin-top-center data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-2 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-card bg-card text-foreground shadow-(--shadow-raise) md:w-[var(--radix-navigation-menu-viewport-width)]",
           className
         )}
         {...props}
@@ -126,7 +126,7 @@ function NavigationMenuLink({
     <NavigationMenuPrimitive.Link
       data-slot="navigation-menu-link"
       className={cn(
-        "flex flex-col gap-1 rounded-md text-sm transition-colors outline-none hover:text-primary focus-visible:text-primary focus-visible:ring-3 focus-visible:ring-ring/50",
+        "flex flex-col gap-1 rounded-md text-sm transition-colors outline-none hover:text-primary focus-visible:text-primary focus-visible:ring-3 focus-visible:ring-primary",
         className
       )}
       {...props}

@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 500" role="img" aria-labelledby="title">
-  <title id="title">Product image coming soon</title>
-  <rect x="245" y="94" width="150" height="250" rx="25" fill="#fff" stroke="#c9c9c2" stroke-width="8"/>
-  <circle cx="320" cy="315" r="8" fill="#ff6d00"/>
-  <path d="M275 205l42-43 30 30 22-22 26 27v62H245v-22z" fill="#e4e4df"/>
-  <text x="320" y="410" text-anchor="middle" fill="#55554e" font-family="Arial, sans-serif" font-size="22">Image coming soon</text>
-</svg>

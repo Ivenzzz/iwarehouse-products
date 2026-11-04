@@ -1,85 +1,107 @@
-import { ArrowRight, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import type { HomeCatalogViewModel } from "../model";
+import { ScrollRow } from "@/components/ui/scroll-row";
+import { SectionHeading } from "@/components/ui/section-heading";
+import type {
+  HomeCatalogViewModel,
+  HomeProductRow,
+  StoreDirectoryViewModel,
+} from "../model";
 import { resolveHomeCategories } from "./home-categories";
+import { ProductCard } from "./product-card";
 import { ProductGrid } from "./product-grid";
+import { StoreHighlights } from "./store-highlights";
+
+function ProductRow({
+  row,
+  priority,
+}: {
+  row: HomeProductRow;
+  priority: boolean;
+}) {
+  return (
+    <section className="py-8 max-[680px]:py-6">
+      <ScrollRow
+        label={row.title.replace(/\.$/, "")}
+        header={<SectionHeading title={row.title} note={row.note} />}
+        action={
+          <Link
+            className="text-sm font-semibold whitespace-nowrap text-primary hover:underline"
+            href={row.href}
+          >
+            See all
+            <span className="sr-only"> {row.title.replace(/\.$/, "")}</span>
+          </Link>
+        }
+        itemClassName="w-[280px] max-[680px]:w-[260px]"
+      >
+        {row.products.map((product, index) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            priority={priority && index < 4}
+          />
+        ))}
+      </ScrollRow>
+    </section>
+  );
+}
 
 export function HomeCatalogSections({
   catalog,
+  stores,
 }: {
   catalog: HomeCatalogViewModel;
+  stores: StoreDirectoryViewModel | null;
 }) {
   const homeCategories = resolveHomeCategories(catalog.filters.categories);
+  const [firstRow, ...otherRows] = catalog.rows;
 
   return (
-    <>
+    <div className="pb-12 max-[680px]:pb-8">
       {homeCategories.length > 0 && (
-        <section className="py-[78px] max-[680px]:py-[55px]">
-          <div className="shell">
-            <div className="mb-[30px]">
-              <p className="eyebrow">
-                <span
-                  aria-hidden="true"
-                  className="mr-2 inline-block size-1.5 -translate-y-px rounded-full bg-brand"
-                />
-                Browse your way
-              </p>
-              <h2 className="m-0 text-[clamp(1.8rem,3vw,2.65rem)] tracking-[-0.05em] text-foreground">
-                Shop <span className="text-brand">by</span> category
-              </h2>
-            </div>
-            <div className="grid grid-cols-4 gap-4 max-[980px]:grid-cols-2">
-              {homeCategories.map((category) => (
-                <Card
-                  key={category.id}
-                  className="relative min-h-46 gap-0 p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow) hover:ring-brand/40 max-[680px]:min-h-41 max-[680px]:p-[18px]"
-                >
+        <section className="py-8 max-[680px]:py-6">
+          <ScrollRow
+            label="Categories"
+            header={
+              <SectionHeading
+                title="Shop by category."
+                note="Pick where to start."
+              />
+            }
+            itemClassName="w-[132px] max-[680px]:w-[104px]"
+          >
+            {homeCategories.map((category) => (
+              <Link
+                key={category.id}
+                href={category.href}
+                className="group flex w-full flex-col items-center gap-3 rounded-2xl text-center text-sm leading-tight font-semibold focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                <span className="grid aspect-square w-full place-items-center rounded-card bg-card shadow-(--shadow-sm) transition-shadow duration-200 group-hover:shadow-(--shadow)">
                   <category.icon
-                    className="size-6 text-brand"
+                    className="size-8 text-foreground transition-colors duration-200 group-hover:text-primary"
                     aria-hidden="true"
                   />
-                  <Link
-                    href={category.href}
-                    className="mt-4 self-start text-[1.02rem] leading-snug font-extrabold tracking-[-0.03em] text-foreground after:absolute after:inset-0 after:rounded-xl after:content-[''] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring focus-visible:after:ring-offset-2"
-                  >
-                    {category.name}
-                  </Link>
-                  <p className="m-0 mt-1.5 mb-4 text-[0.75rem] leading-relaxed text-muted-foreground">
-                    {category.tagline}
-                  </p>
-                  <span
-                    aria-hidden="true"
-                    className="mt-auto grid size-9 place-items-center rounded-full bg-card text-brand shadow-(--shadow-sm) ring-1 ring-foreground/10 transition-colors duration-200 group-hover/card:bg-brand group-hover/card:text-primary-foreground"
-                  >
-                    <ChevronRight className="size-4" />
-                  </span>
-                </Card>
-              ))}
-            </div>
-          </div>
+                </span>
+                {category.name}
+              </Link>
+            ))}
+          </ScrollRow>
         </section>
       )}
 
-      <section className="bg-(--canvas) py-[78px] max-[680px]:py-[55px]">
-        <div className="shell">
-          <div className="mb-[30px] flex items-end justify-between gap-6 max-[680px]:flex-col max-[680px]:items-start">
-            <div>
-              <p className="eyebrow">Fresh in store</p>
-              <h2 className="m-0 text-[clamp(1.8rem,3vw,2.65rem)] tracking-[-0.05em] text-foreground">
-                Recently available
-              </h2>
-            </div>
-            <Link
-              className="inline-flex shrink-0 items-center gap-1.5 text-[0.8rem] font-extrabold whitespace-nowrap text-primary [&_svg]:size-[14px]"
-              href="/products?sort=newest"
-            >
-              Explore everything <ArrowRight aria-hidden="true" />
-            </Link>
-          </div>
-          <ProductGrid products={catalog.products} />
-        </div>
-      </section>
-    </>
+      {firstRow ? (
+        <ProductRow row={firstRow} priority />
+      ) : (
+        <section className="shell py-8 max-[680px]:py-6">
+          <ProductGrid products={[]} />
+        </section>
+      )}
+
+      <StoreHighlights directory={stores} />
+
+      {otherRows.map((row) => (
+        <ProductRow row={row} priority={false} key={row.id} />
+      ))}
+    </div>
   );
 }

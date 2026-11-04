@@ -10,47 +10,36 @@
  *
  * The site is light, with black, white, and brand orange. --brand is the fill
  * and carries black text, because white fails contrast against it. --primary
- * is the darker orange for text, because --brand is too faint on white.
+ * is the darker orange for text, because --brand is too faint on light
+ * surfaces. --brand-400 is the orange for text on black cards.
  */
 :root {
-  /* 400 is for dark sections only; 50 is a light tint. */
   --brand-50: #fff1e6;
   --brand-400: #ff8a33;
   --brand-500: #ff6d00;
-  --brand-600: #e65f00;
   --brand-700: #b84a00;
 
-  --warm-50: #f7f7f5;
-  --warm-100: #efefeb;
+  --warm-100: #ebebe7;
   --warm-200: #e2e2dd;
-  --warm-300: #8f8f86;
-  --warm-400: #7a7a71;
+  --warm-300: #8a8a81;
   --warm-500: #6b6b63;
   --warm-600: #55554e;
   --warm-700: #33332f;
-  --warm-800: #1c1c1a;
   --warm-900: #000000;
 
-  --canvas: var(--warm-50);
+  --canvas: #f4f4f2;
   --brand: var(--brand-500);
-  --success: #15794f;
-  --success-soft: #eaf6f0;
   --night: #000000;
   --night-raised: #161614;
   --night-copy: #bdbdb3;
 
-  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.04);
-  --shadow: 0 18px 50px rgba(0, 0, 0, 0.09);
-  --shadow-brand: 0 8px 18px rgba(255, 109, 0, 0.22);
-  --shadow-raise: 0 15px 38px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 6px 20px rgba(0, 0, 0, 0.06);
+  --shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+  --shadow-raise: 0 15px 38px rgba(0, 0, 0, 0.12);
 
-  --brand-a08: rgba(255, 109, 0, 0.08);
-  --brand-a20: rgba(255, 109, 0, 0.2);
-  --brand-a34: rgba(255, 109, 0, 0.34);
   --border-a82: rgba(226, 226, 221, 0.82);
-  --success-line: rgba(21, 121, 79, 0.14);
 
-  --background: #ffffff;
+  --background: var(--canvas);
   --foreground: var(--warm-900);
   --card: #ffffff;
   --card-foreground: var(--warm-900);
@@ -93,13 +82,12 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-brand: var(--brand);
-  --color-success: var(--success);
-  --color-success-soft: var(--success-soft);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-card: 20px;
 
   --font-sans: var(--font-manrope), Arial, sans-serif;
 }
@@ -107,7 +95,7 @@
 @layer base {
   * {
     box-sizing: border-box;
-    @apply border-border outline-ring/50;
+    @apply border-border outline-primary;
   }
 
   html {
@@ -146,57 +134,26 @@
   margin-inline: auto;
 }
 
-.eyebrow {
-  margin: 0 0 9px;
-  color: var(--primary);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-/* Decorative artwork is clearer as authored CSS than as long utility strings. */
-.hero {
-  position: relative;
-  overflow: hidden;
-  background: var(--warm-100);
-}
-
 /*
- * The hero collage is a transparent product cutout supplied by the ERP;
- * the pedestal shadow that grounds it stays in CSS so any upload still sits
- * on the surface.
+ * A full-width track whose first item lines up with .shell, so scrolling rows
+ * run off the right edge of the page.
  */
-.hero-art {
-  position: relative;
-  min-height: 560px;
-  isolation: isolate;
+.shell-bleed {
+  --shell-gutter: max(20px, calc((100% - 1180px) / 2));
+  padding-inline: var(--shell-gutter);
+  scroll-padding-inline: var(--shell-gutter);
+  scrollbar-width: none;
 }
 
-.hero-art::after {
-  position: absolute;
-  z-index: -1;
-  right: 8%;
-  bottom: 5%;
-  left: 8%;
-  height: 42px;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(0, 0, 0, 0.18),
-    transparent 68%
-  );
-  content: "";
-  filter: blur(7px);
+.shell-bleed::-webkit-scrollbar {
+  display: none;
 }
 
-.store-banner {
-  background:
-    radial-gradient(circle at 85% 20%, var(--brand-a34), transparent 25%),
-    var(--night);
-}
-
-.store-banner .eyebrow {
-  color: var(--brand-400);
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .catalog-select {
@@ -207,14 +164,18 @@
   background-size: 16px 16px;
 }
 
-@media (max-width: 980px) {
-  .hero-art {
-    display: none;
-  }
-}
-
 @media (max-width: 680px) {
   .shell {
     width: min(100% - 28px, 1180px);
+  }
+
+  .shell-bleed {
+    --shell-gutter: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }

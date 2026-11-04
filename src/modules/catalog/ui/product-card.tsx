@@ -1,10 +1,9 @@
-import { ArrowRight } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import type { CatalogProductSummary } from "../model";
 import { formatPeso, productPath } from "../presentation";
+import { ProductPhoto } from "./product-photo";
 
 export function ProductCard({
   product,
@@ -19,58 +18,61 @@ export function ProductCard({
   const hasPrice = product.cashPriceFrom !== null && product.cashPriceFrom > 0;
 
   return (
-    <Card className="group relative gap-0 py-0 transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow) hover:ring-brand/40">
-      <div className="relative aspect-1.35 overflow-hidden bg-white">
-        <Image
-          src={product.imageUrl || "/product-placeholder.svg"}
+    <Card className="relative h-full w-full gap-0 py-0 transition-shadow duration-200 hover:shadow-(--shadow)">
+      <div className="relative aspect-[4/3] overflow-hidden bg-white">
+        <ProductPhoto
+          src={product.imageUrl}
           alt=""
+          brand={product.brand.name}
           width={560}
-          height={440}
-          sizes="(max-width: 680px) 100vw, (max-width: 1100px) 50vw, 33vw"
+          height={420}
+          sizes="(max-width: 680px) 100vw, 300px"
           priority={priority}
-          unoptimized
-          className="size-full object-contain p-4.5 transition-transform duration-300 group-hover:scale-103"
+          className="p-5"
         />
-        <Badge className="absolute top-3 right-3 gap-1.5 border-(--success-line) bg-success-soft font-extrabold text-success">
-          <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
-          In stock
-        </Badge>
       </div>
 
-      <CardContent className="p-5">
+      <CardContent className="flex flex-1 flex-col px-5 pt-3 pb-0">
         <p className="eyebrow">{product.brand.name}</p>
-        <h3 className="m-0 min-h-10 text-[1.02rem] leading-tight tracking-tighter">
+        <h3 className="m-0 line-clamp-2 min-h-[2.6em] text-base leading-[1.3] font-semibold tracking-[-0.01em]">
           {product.name}
         </h3>
-        <div className="mt-3 flex min-h-7 flex-wrap gap-1.5">
+        <div className="mt-3 flex min-h-5 flex-wrap gap-1.5">
           {product.conditions.slice(0, 2).map((condition) => (
-            <Badge variant="secondary" className="rounded-md font-bold" key={condition}>
+            <Badge variant="secondary" key={condition}>
               {condition}
             </Badge>
           ))}
         </div>
-        <div className="mt-4.5 grid min-h-16 grid-cols-[1fr_auto] items-end">
-          <small className="col-span-full text-[0.64rem] text-muted-foreground">
+        <div className="mt-auto grid grid-cols-[1fr_auto] items-baseline pt-4">
+          <small className="col-span-full text-xs text-muted-foreground">
             {hasPrice ? "From" : "Price"}
           </small>
-          <strong className="text-[1.17rem] tracking-tighter text-primary">
+          <strong
+            className={
+              hasPrice
+                ? "text-xl font-bold tracking-[-0.02em]"
+                : "text-sm font-semibold"
+            }
+          >
             {formatPeso(product.cashPriceFrom)}
           </strong>
-          {hasPrice && product.srpPrice !== null && product.srpPrice > (product.cashPriceFrom ?? 0) ? (
-            <del className="text-[0.69rem] text-(--warm-500)">{formatPeso(product.srpPrice)}</del>
+          {hasPrice &&
+          product.srpPrice !== null &&
+          product.srpPrice > (product.cashPriceFrom ?? 0) ? (
+            <del className="text-xs text-[var(--warm-500)]">
+              {formatPeso(product.srpPrice)}
+            </del>
           ) : null}
         </div>
       </CardContent>
 
-      <CardFooter className="mt-4 justify-between bg-transparent px-5 py-4 text-[0.67rem] font-bold text-muted-foreground">
+      <CardFooter className="border-0 bg-transparent px-5 pt-2 pb-5 text-xs text-muted-foreground">
         <span>Available at {locationLabel}</span>
-        <span className="inline-flex items-center gap-1 text-primary" aria-hidden="true">
-          View <ArrowRight className="size-3" />
-        </span>
       </CardFooter>
 
       <Link
-        className="absolute inset-0 rounded-xl focus-visible:outline-3 focus-visible:outline-offset-[-3px] focus-visible:outline-brand"
+        className="absolute inset-0 rounded-card focus-visible:outline-3 focus-visible:outline-offset-[-3px] focus-visible:outline-primary"
         href={productPath(product)}
         aria-label={`View ${product.name}`}
       />

@@ -82,12 +82,6 @@ describe("resolveHomeCategories", () => {
     expect(resolved[1].href).toBe("/products?category=9");
   });
 
-  it("gives every card a curated tagline", () => {
-    for (const entry of resolveHomeCategories(fullTree)) {
-      expect(entry.tagline).not.toBe("");
-    }
-  });
-
   it("resolves leaf categories that only exist as children", () => {
     const ids = resolveHomeCategories(fullTree).map((entry) => entry.id);
     expect(ids).toContain(2);

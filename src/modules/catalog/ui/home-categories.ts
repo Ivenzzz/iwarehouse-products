@@ -14,70 +14,25 @@ import type { CatalogFilters } from "../model";
 interface HomeCategoryEntry {
   id: number;
   name: string;
-  tagline: string;
   icon: LucideIcon;
 }
 
-export interface ResolvedHomeCategory {
-  id: number;
-  name: string;
-  tagline: string;
-  icon: LucideIcon;
+export interface ResolvedHomeCategory extends HomeCategoryEntry {
   href: string;
 }
 
-// Display names and taglines are curated for the storefront; ids must exist
-// in the live ERP filters or the card is hidden. An id may point at a parent
-// or a leaf child — whichever makes the better storefront aisle.
+// Display names are curated for the storefront; ids must exist in the live
+// ERP filters or the tile is hidden. An id may point at a parent or a leaf
+// child — whichever makes the better storefront aisle.
 const HOME_CATEGORIES: HomeCategoryEntry[] = [
-  {
-    id: 2,
-    name: "Smartphones",
-    tagline: "Latest phones and smart devices.",
-    icon: Smartphone,
-  },
-  {
-    id: 9,
-    name: "Laptops & Computers",
-    tagline: "Powerful laptops and essential gear.",
-    icon: Laptop,
-  },
-  {
-    id: 3,
-    name: "Tablets",
-    tagline: "Portable power for work and play.",
-    icon: Tablet,
-  },
-  {
-    id: 18,
-    name: "Gaming",
-    tagline: "Level up your gaming setup.",
-    icon: Gamepad2,
-  },
-  {
-    id: 23,
-    name: "TV & Audio",
-    tagline: "Sound that moves with you.",
-    icon: Headphones,
-  },
-  {
-    id: 35,
-    name: "Accessories",
-    tagline: "Cables, chargers and everyday essentials.",
-    icon: Cable,
-  },
-  {
-    id: 30,
-    name: "Cameras & Drones",
-    tagline: "Capture every moment clearly.",
-    icon: Camera,
-  },
-  {
-    id: 4,
-    name: "Wearables",
-    tagline: "Watches and bands that keep up.",
-    icon: Watch,
-  },
+  { id: 2, name: "Smartphones", icon: Smartphone },
+  { id: 9, name: "Laptops & Computers", icon: Laptop },
+  { id: 3, name: "Tablets", icon: Tablet },
+  { id: 18, name: "Gaming", icon: Gamepad2 },
+  { id: 23, name: "TV & Audio", icon: Headphones },
+  { id: 35, name: "Accessories", icon: Cable },
+  { id: 30, name: "Cameras & Drones", icon: Camera },
+  { id: 4, name: "Wearables", icon: Watch },
 ];
 
 const categoryHref = (id: number) => `/products?category=${id}`;

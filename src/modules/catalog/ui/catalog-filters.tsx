@@ -1,3 +1,4 @@
+import { SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,9 @@ function selected(value: string | string[] | undefined): string {
  * The class list below matches shadcn's Input so the controls read as one set.
  */
 const selectClass =
-  "catalog-select flex h-10 w-full min-w-0 appearance-none rounded-md border border-input bg-background px-3 py-1 text-[0.76rem] shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
+  "catalog-select flex h-10 w-full min-w-0 appearance-none rounded-xl border border-input bg-card px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50";
+
+const FILTER_FIELDS = ["q", "category", "brand", "condition", "location", "city"];
 
 export function CatalogFilterForm({
   filters,
@@ -25,20 +28,38 @@ export function CatalogFilterForm({
   query: Record<string, string | string[] | undefined>;
 }) {
   const values = query as CatalogQuery;
+  const activeFilters = FILTER_FIELDS.filter((field) =>
+    selected(query[field]),
+  ).length;
 
   return (
+    <>
+      {/*
+        A checkbox and label so the phone toggle needs no JavaScript and there
+        is still only one form. It sits outside the form, so it never reaches
+        the URL.
+      */}
+      <input
+        id="catalog-filters-toggle"
+        type="checkbox"
+        className="peer sr-only min-[981px]:hidden"
+      />
+      <label
+        htmlFor="catalog-filters-toggle"
+        className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-card text-sm font-semibold shadow-(--shadow-sm) peer-focus-visible:ring-3 peer-focus-visible:ring-primary min-[981px]:hidden"
+      >
+        <SlidersHorizontal className="size-4" aria-hidden="true" />
+        {activeFilters > 0 ? `Filters (${activeFilters})` : "Filters"}
+      </label>
     <form
-      className="sticky top-24 rounded-[15px] border border-border bg-card p-5 [&_.field]:mt-[15px] [&_.field]:block [&_.field>label]:mb-[7px] [&_.field>label]:text-[0.67rem] [&_.field>label]:font-extrabold max-[980px]:static max-[980px]:grid max-[980px]:grid-cols-3 max-[980px]:gap-x-[14px] max-[680px]:grid-cols-1"
+      className="sticky top-20 hidden rounded-card bg-card p-5 shadow-(--shadow-sm) peer-checked:grid min-[981px]:block! [&_.field]:mt-4 [&_.field]:block [&_.field>label]:mb-1.5 [&_.field>label]:text-xs [&_.field>label]:font-semibold max-[980px]:static max-[980px]:mt-3 max-[980px]:grid-cols-3 max-[980px]:gap-x-3.5 max-[680px]:grid-cols-1"
       action="/products"
       method="get"
     >
-      <div className="mb-5 flex items-end justify-between max-[980px]:col-span-full max-[680px]:col-span-auto">
-        <div>
-          <p className="eyebrow">Narrow your search</p>
-          <h2 className="m-0 text-[1.12rem]">Filters</h2>
-        </div>
+      <div className="flex items-center justify-between max-[980px]:col-span-full max-[980px]:justify-end">
+        <h2 className="m-0 text-base font-bold max-[980px]:sr-only">Filters</h2>
         <Link
-          className="inline-flex shrink-0 items-center gap-1.5 text-[0.8rem] font-extrabold whitespace-nowrap text-primary [&_svg]:size-[14px]"
+          className="text-sm font-semibold whitespace-nowrap text-primary hover:underline"
           href="/products"
         >
           Clear all
@@ -52,7 +73,7 @@ export function CatalogFilterForm({
           name="q"
           defaultValue={selected(values.q)}
           placeholder="Brand, model, color…"
-          className="h-10 text-[0.76rem]"
+          className="h-10 bg-card text-sm"
         />
       </div>
       <div className="field">
@@ -156,10 +177,11 @@ export function CatalogFilterForm({
       </div>
       <Button
         type="submit"
-        className="mt-6 h-11 w-full text-[0.83rem] font-extrabold max-[980px]:col-span-full max-[680px]:col-span-auto"
+        className="mt-5 h-11 w-full max-[980px]:col-span-full"
       >
         Show products
       </Button>
     </form>
+    </>
   );
 }

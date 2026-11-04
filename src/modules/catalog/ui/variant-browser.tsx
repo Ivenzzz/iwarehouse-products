@@ -1,11 +1,12 @@
 "use client";
 
 import { ExternalLink, Phone } from "lucide-react";
-import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/ui/section-heading";
 import type { CatalogProductDetail } from "../model";
 import { directionsUrl, formatPeso } from "../presentation";
+import { ProductPhoto } from "./product-photo";
 
 export function VariantBrowser({
   product,
@@ -22,68 +23,73 @@ export function VariantBrowser({
   const hasPrice = variant.cashPriceFrom !== null && variant.cashPriceFrom > 0;
 
   return (
-    <div className="grid grid-cols-[1.02fr_0.98fr] items-start gap-16 max-[980px]:grid-cols-1 max-[980px]:gap-[38px]">
-      <div className="sticky top-[110px] overflow-hidden rounded-[22px] border border-border bg-white shadow-(--shadow) max-[980px]:static max-[980px]:max-w-[680px]">
-        <Image
-          src={
-            variant.imageUrl ||
-            product.imageUrl ||
-            "/product-placeholder.svg"
-          }
+    <div className="grid grid-cols-[1.02fr_0.98fr] items-start gap-12 max-[980px]:grid-cols-1 max-[980px]:gap-8">
+      <div className="sticky top-20 aspect-[1.15] overflow-hidden rounded-card bg-white shadow-(--shadow-sm) max-[980px]:static max-[980px]:max-w-[680px]">
+        <ProductPhoto
+          src={variant.imageUrl || product.imageUrl}
           alt={product.name}
+          brand={product.brand.name}
           width={900}
           height={760}
           priority
-          unoptimized
-          className="block aspect-[1.15] h-auto w-full object-contain p-[42px] max-[680px]:p-[22px]"
+          className="p-10 max-[680px]:p-5"
+          fallbackClassName="text-2xl"
         />
       </div>
-      <div className="pt-3">
+      <div>
         <p className="eyebrow">{product.brand.name}</p>
-        <h1 className="m-0 text-[clamp(2.2rem,4vw,3.8rem)] leading-[1.04] tracking-[-0.05em] text-foreground">
+        <h1 className="m-0 text-[clamp(2rem,4vw,2.5rem)] leading-[1.1] font-bold tracking-[-0.02em] text-foreground">
           {product.name}
         </h1>
         {product.description ? (
-          <p className="mt-[18px] mb-0 leading-[1.75] text-muted-foreground">
+          <p className="mt-4 mb-0 max-w-[60ch] text-base leading-[1.6] text-muted-foreground">
             {product.description}
           </p>
         ) : null}
 
-        <div className="my-7 flex flex-wrap items-baseline gap-x-[15px] gap-y-[9px]">
-          <small className="w-full text-[0.68rem] font-bold text-muted-foreground">
+        <div className="my-6 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <small className="w-full text-sm text-muted-foreground">
             {hasPrice ? "Cash price from" : "Price"}
           </small>
-          <strong className="text-[2rem] tracking-[-0.05em] text-primary">
+          <strong
+            className={
+              hasPrice
+                ? "text-[1.75rem] font-bold tracking-[-0.02em]"
+                : "text-xl font-semibold"
+            }
+          >
             {formatPeso(variant.cashPriceFrom)}
           </strong>
           {hasPrice &&
           variant.srpPrice !== null &&
           variant.srpPrice > (variant.cashPriceFrom ?? 0) ? (
-            <span className="text-[0.76rem] text-[var(--warm-500)]">
+            <span className="text-sm text-[var(--warm-500)]">
               SRP {formatPeso(variant.srpPrice)}
             </span>
           ) : null}
         </div>
 
         <fieldset className="border-0 p-0">
-          <legend className="mb-[11px] text-[0.74rem] font-extrabold text-[var(--warm-700)]">
+          <legend className="mb-2.5 text-sm font-semibold">
             Choose a variant
           </legend>
-          <div className="grid gap-[9px]">
+          <div className="grid gap-2.5">
             {product.variants.map((item) => (
               <button
-                className={`flex min-h-[63px] w-full cursor-pointer flex-col items-start rounded-[10px] border px-[14px] py-[11px] text-left text-foreground ${
+                className={`flex min-h-16 w-full cursor-pointer flex-col items-start rounded-2xl border-2 bg-card px-4 py-3 text-left text-foreground shadow-(--shadow-sm) transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                   item.id === variant.id
-                    ? "border-brand bg-[var(--brand-50)] shadow-[0_0_0_2px_var(--brand-a08)]"
-                    : "border-[var(--warm-300)] bg-card"
+                    ? "border-brand"
+                    : "border-transparent hover:border-[var(--warm-200)]"
                 }`}
                 key={item.id}
                 type="button"
                 onClick={() => setSelectedId(item.id)}
                 aria-pressed={item.id === variant.id}
               >
-                <strong className="text-[0.78rem]">{item.condition}</strong>
-                <span className="mt-[5px] text-[0.67rem] text-muted-foreground">
+                <strong className="text-sm font-semibold">
+                  {item.condition}
+                </strong>
+                <span className="mt-1 text-xs text-muted-foreground">
                   {item.attributes
                     .map((attribute) => attribute.value)
                     .filter(Boolean)
@@ -94,44 +100,37 @@ export function VariantBrowser({
           </div>
         </fieldset>
 
-        <section
-          className="mt-[38px] border-t border-border pt-[30px]"
-          id="locations"
-        >
-          <div className="mb-[18px] flex items-end justify-between gap-6 max-[680px]:flex-col max-[680px]:items-start">
-            <div>
-              <p className="eyebrow">Where to find it</p>
-              <h2 className="m-0 text-[1.3rem] tracking-[-0.035em]">
-                Available locations
-              </h2>
-            </div>
-            <span className="text-[0.63rem] font-bold text-muted-foreground">
-              <span
-                className="inline-block size-1.5 rounded-full bg-success"
-                aria-hidden="true"
-              />{" "}
+        <section className="mt-10" id="locations">
+          <div className="mb-4 flex items-end justify-between gap-4 max-[680px]:flex-col max-[680px]:items-start max-[680px]:gap-1">
+            <SectionHeading
+              title="Available locations."
+              className="text-xl max-[680px]:text-xl"
+            />
+            <span className="shrink-0 text-xs text-muted-foreground">
               Updated frequently
             </span>
           </div>
-          <div className="grid gap-[9px]">
+          <div className="grid gap-2.5">
             {variant.locations.map((location) => (
               <article
-                className="flex items-center justify-between gap-5 rounded-[10px] border border-border p-[15px] max-[680px]:flex-col max-[680px]:items-start"
+                className="flex items-center justify-between gap-5 rounded-2xl bg-card p-4 shadow-(--shadow-sm) max-[680px]:flex-col max-[680px]:items-start max-[680px]:gap-3"
                 key={location.id}
               >
                 <div>
-                  <strong className="text-[0.78rem]">{location.name}</strong>
-                  <p className="mt-[5px] mb-0 text-[0.65rem] text-muted-foreground">
+                  <strong className="text-sm font-semibold">
+                    {location.name}
+                  </strong>
+                  <p className="mt-1 mb-0 text-xs leading-[1.5] text-muted-foreground">
                     {location.address || location.city}
                   </p>
                 </div>
-                <div className="flex shrink-0 gap-[7px] max-[680px]:w-full max-[680px]:[&_a]:flex-1 max-[680px]:[&_a]:text-center">
+                <div className="flex shrink-0 gap-2 max-[680px]:w-full max-[680px]:[&_a]:flex-1 max-[680px]:[&_a]:text-center">
                   {location.phone ? (
                     <Button
                       asChild
                       variant="outline"
                       size="sm"
-                      className="font-extrabold text-primary"
+                      className="text-primary"
                     >
                       <a href={`tel:${location.phone}`}>
                         <Phone data-icon="inline-start" />
@@ -143,7 +142,7 @@ export function VariantBrowser({
                     asChild
                     variant="outline"
                     size="sm"
-                    className="font-extrabold text-primary"
+                    className="text-primary"
                   >
                     <a
                       href={directionsUrl(location)}
@@ -158,7 +157,7 @@ export function VariantBrowser({
               </article>
             ))}
           </div>
-          <p className="mt-3 mb-0 text-[0.61rem] leading-[1.6] text-[var(--warm-500)]">
+          <p className="mt-3 mb-0 text-xs leading-[1.6] text-[var(--warm-500)]">
             Availability is informational and does not reserve an item. Contact
             the store before visiting.
           </p>

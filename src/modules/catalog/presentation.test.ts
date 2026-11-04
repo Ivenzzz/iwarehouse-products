@@ -1,7 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { directionsUrl, formatPeso, productPath } from "./presentation";
+import {
+  directionsUrl,
+  firstStorePhone,
+  formatPeso,
+  productPath,
+} from "./presentation";
 
 describe("catalog presentation", () => {
+  it("finds the first store phone and tolerates stores without one", () => {
+    const location = {
+      id: 3,
+      name: "Makati Store",
+      type: "store" as const,
+      address: "Makati",
+      city: "Makati",
+      latitude: null,
+      longitude: null,
+    };
+
+    expect(
+      firstStorePhone({
+        groups: [
+          { city: "Makati", locations: [{ ...location, phone: null }] },
+          { city: "Taguig", locations: [{ ...location, phone: "+632" }] },
+        ],
+      }),
+    ).toBe("+632");
+    expect(
+      firstStorePhone({
+        groups: [{ city: "Makati", locations: [{ ...location, phone: null }] }],
+      }),
+    ).toBeNull();
+  });
+
   it("formats Philippine peso prices for English customers", () => {
     expect(formatPeso(42000)).toBe("₱42,000");
     expect(formatPeso(null)).toBe("Contact store for price");

@@ -107,8 +107,14 @@ test("stores page lists locations grouped by city with store actions", async ({
   await expect(kioskCard.getByRole("link", { name: "Call" })).toHaveCount(0);
 });
 
-test("catalog filters stay in the URL and ERP failures have a friendly state", async ({ page }) => {
+test("catalog filters stay in the URL and ERP failures have a friendly state", async ({
+  page,
+  isMobile,
+}) => {
   await page.goto("/products");
+  if (isMobile) {
+    await page.locator('label[for="catalog-filters-toggle"]').click();
+  }
   await page.getByLabel("Brand").selectOption("1");
   await page.getByLabel("City").selectOption("Makati");
   await page.getByRole("button", { name: "Show products" }).click();

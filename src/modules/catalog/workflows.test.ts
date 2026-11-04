@@ -67,22 +67,143 @@ function stubSource(overrides: Partial<CatalogSource>): CatalogSource {
 }
 
 describe("catalog workflows", () => {
-  it("loads the homepage catalog through one outcome", async () => {
-    const productQueries: CatalogQuery[] = [];
-    const source = stubSource({
-      getProducts: async (query) => {
-        productQueries.push(query);
-        return page([product]);
-      },
+  describe("loadHomeCatalog", () => {
+    const productWithId = (id: number): CatalogProductSummary => ({
+      ...product,
+      id,
+      slug: `product-${id}`,
     });
 
-    const catalog = createCatalogWorkflows(source);
+    const rowsById = async (source: CatalogSource) => {
+      const outcome = await createCatalogWorkflows(source).loadHomeCatalog();
+      if (outcome.status !== "ready") throw new Error("expected ready outcome");
+      return Object.fromEntries(
+        outcome.data.rows.map((row) => [
+          row.id,
+          row.products.map((item) => item.id),
+        ]),
+      );
+    };
 
-    await expect(catalog.loadHomeCatalog()).resolves.toEqual({
-      status: "ready",
-      data: { filters, products: [product] },
+    it("requests the newest row and the two category rows", async () => {
+      const productQueries: CatalogQuery[] = [];
+      const source = stubSource({
+        getProducts: async (query) => {
+          productQueries.push(query);
+          return page([]);
+        },
+      });
+
+      await createCatalogWorkflows(source).loadHomeCatalog();
+
+      expect(productQueries).toEqual([
+        { sort: "newest", perPage: "12" },
+        { sort: "newest", category: "2", perPage: "20" },
+        { sort: "newest", category: "9", perPage: "20" },
+      ]);
     });
-    expect(productQueries).toEqual([{ sort: "newest", perPage: "6" }]);
+
+    it("still fills a category row to 8 after removing duplicates", async () => {
+      const newest = [1, 2, 3, 4, 5].map(productWithId);
+      const phones = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map(
+        productWithId,
+      );
+      const source = stubSource({
+        getProducts: async (query) =>
+          page(query.category === "2" ? phones : newest),
+      });
+
+      await expect(rowsById(source)).resolves.toMatchObject({
+        smartphones: [6, 7, 8, 9, 10, 11, 12, 13],
+      });
+    });
+
+    it("keeps each product in its first row only and links rows to the catalog", async () => {
+      const source = stubSource({
+        getProducts: async (query) => {
+          if (query.category === "2") {
+            return page([productWithId(1), productWithId(2)]);
+          }
+          if (query.category === "9") {
+            return page([productWithId(2), productWithId(3)]);
+          }
+          return page([productWithId(1)]);
+        },
+      });
+
+      await expect(rowsById(source)).resolves.toEqual({
+        newest: [1],
+        smartphones: [2],
+        laptops: [3],
+      });
+
+      const outcome = await createCatalogWorkflows(source).loadHomeCatalog();
+      expect(outcome).toMatchObject({
+        status: "ready",
+        data: {
+          filters,
+          rows: [
+            { id: "newest", href: "/products?sort=newest" },
+            { id: "smartphones", href: "/products?category=2&sort=newest" },
+            { id: "laptops", href: "/products?category=9&sort=newest" },
+          ],
+        },
+      });
+    });
+
+    it("drops rows left empty, including after duplicates are removed", async () => {
+      const source = stubSource({
+        getProducts: async (query) =>
+          query.category === "9" ? page([]) : page([product]),
+      });
+
+      await expect(rowsById(source)).resolves.toEqual({ newest: [17] });
+    });
+
+    it("hides a category row that fails and keeps the rest of the page", async () => {
+      const source = stubSource({
+        getProducts: async (query) => {
+          if (query.category === "2") {
+            throw new CatalogSourceError("unavailable");
+          }
+          return query.category === "9"
+            ? page([productWithId(3)])
+            : page([productWithId(1)]);
+        },
+      });
+
+      await expect(rowsById(source)).resolves.toEqual({
+        newest: [1],
+        laptops: [3],
+      });
+    });
+
+    it("is unavailable when the newest row fails", async () => {
+      const source = stubSource({
+        getProducts: async (query) => {
+          if (!query.category) throw new CatalogSourceError("unavailable");
+          return page([product]);
+        },
+      });
+
+      await expect(
+        createCatalogWorkflows(source).loadHomeCatalog(),
+      ).resolves.toEqual({ status: "unavailable" });
+    });
+
+    it("rethrows unexpected errors from a category row", async () => {
+      const bug = new TypeError("programming error");
+      const source = stubSource({
+        getProducts: async (query) => {
+          if (query.category === "9") throw bug;
+          return page([product]);
+        },
+      });
+
+      await expect(createCatalogWorkflows(source).loadHomeCatalog()).rejects.toBe(
+        bug,
+      );
+    });
   });
 
   it("normalizes browse input and calculates the visible result range", async () => {

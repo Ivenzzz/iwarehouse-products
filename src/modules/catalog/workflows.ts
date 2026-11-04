@@ -2,8 +2,10 @@ import type {
   BrowseCatalogViewModel,
   CatalogLocation,
   CatalogOutcome,
+  CatalogProductSummary,
   CatalogQuery,
   HomeCatalogViewModel,
+  HomeProductRow,
   ProductResolution,
   RawSearchParams,
   SiteBranding,
@@ -62,18 +64,102 @@ function queryFrom(params: RawSearchParams): CatalogQuery {
   };
 }
 
+interface HomeRowDefinition extends Omit<HomeProductRow, "products"> {
+  query: CatalogQuery;
+}
+
+const NEWEST_ROW: HomeRowDefinition = {
+  id: "newest",
+  title: "Recently available.",
+  note: "Fresh in store.",
+  href: "/products?sort=newest",
+  query: { sort: "newest", perPage: "12" },
+};
+
+const MAX_PRODUCTS_PER_ROW = 12;
+const MAX_PRODUCTS_PER_CATEGORY_ROW = 8;
+
+// Category ids match the curated storefront aisles in ui/home-categories.ts.
+// Each fetches more than it shows, because the newest row often already holds
+// a category's latest products and those are removed as duplicates.
+const CATEGORY_ROWS: HomeRowDefinition[] = [
+  {
+    id: "smartphones",
+    title: "Smartphones.",
+    note: "The latest phones.",
+    href: "/products?category=2&sort=newest",
+    query: { sort: "newest", category: "2", perPage: "20" },
+  },
+  {
+    id: "laptops",
+    title: "Laptops & computers.",
+    note: "For work and play.",
+    href: "/products?category=9&sort=newest",
+    query: { sort: "newest", category: "9", perPage: "20" },
+  },
+];
+
+function buildHomeRows(
+  rows: Array<{
+    definition: HomeRowDefinition;
+    products: CatalogProductSummary[];
+    limit: number;
+  }>,
+): HomeProductRow[] {
+  const seen = new Set<number>();
+
+  return rows.flatMap(({ definition, products, limit }) => {
+    const unique = products
+      .filter((product) => !seen.has(product.id))
+      .slice(0, limit);
+    unique.forEach((product) => seen.add(product.id));
+    if (unique.length === 0) return [];
+
+    const { id, title, note, href } = definition;
+    return [{ id, title, note, href, products: unique }];
+  });
+}
+
 export function createCatalogWorkflows(source: CatalogSource) {
   return {
     async loadHomeCatalog(): Promise<CatalogOutcome<HomeCatalogViewModel>> {
       try {
-        const [filters, products] = await Promise.all([
+        const [filters, newest, categoryResults] = await Promise.all([
           source.getFilters(),
-          source.getProducts({ sort: "newest", perPage: "6" }),
+          source.getProducts(NEWEST_ROW.query),
+          // A failed category row costs only that row, not the whole page.
+          Promise.allSettled(
+            CATEGORY_ROWS.map((row) => source.getProducts(row.query)),
+          ),
         ]);
+
+        const categoryRows = categoryResults.flatMap((result, index) => {
+          if (result.status === "fulfilled") {
+            return [
+              {
+                definition: CATEGORY_ROWS[index],
+                products: result.value.data,
+                limit: MAX_PRODUCTS_PER_CATEGORY_ROW,
+              },
+            ];
+          }
+          if (result.reason instanceof CatalogSourceError) return [];
+          throw result.reason;
+        });
 
         return {
           status: "ready",
-          data: { filters, products: products.data },
+          data: {
+            filters,
+            rows: buildHomeRows([
+              {
+                definition: NEWEST_ROW,
+                products: newest.data,
+                limit: MAX_PRODUCTS_PER_ROW,
+              },
+              ...categoryRows,
+            ]),
+          },
         };
       } catch (error) {
         return unavailableOutcome(error);

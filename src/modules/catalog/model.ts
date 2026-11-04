@@ -122,9 +122,17 @@ export type CatalogOutcome<T> =
   | { status: "ready"; data: T }
   | { status: "unavailable" };
 
+export interface HomeProductRow {
+  id: string;
+  title: string;
+  note: string;
+  href: string;
+  products: CatalogProductSummary[];
+}
+
 export interface HomeCatalogViewModel {
   filters: CatalogFilters;
-  products: CatalogProductSummary[];
+  rows: HomeProductRow[];
 }
 
 export type RawSearchParams = Record<string, string | string[] | undefined>;
