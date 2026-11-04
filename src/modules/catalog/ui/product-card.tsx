@@ -134,7 +134,7 @@ export function ProductCard({
       </CardFooter>
 
       <Link
-        className="absolute inset-0 rounded-card focus-visible:outline-3 focus-visible:outline-offset-[-3px] focus-visible:outline-primary"
+        className="absolute inset-0 rounded-card focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
         href={productPath(product)}
         aria-label={`View ${product.name}`}
       />

@@ -63,7 +63,7 @@ export function HomeCatalogSections({
               <Link
                 key={category.id}
                 href={category.href}
-                className="group flex w-full flex-col items-center gap-3 rounded-2xl text-center text-sm leading-tight font-semibold focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="group flex w-full flex-col items-center gap-3 rounded-2xl text-center text-sm leading-tight font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 <span className="grid aspect-square w-full place-items-center rounded-card bg-card shadow-(--shadow-sm) transition-shadow duration-200 group-hover:shadow-(--shadow)">
                   <category.icon

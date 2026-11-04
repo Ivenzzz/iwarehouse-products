@@ -76,7 +76,7 @@ export function VariantBrowser({
           <div className="grid gap-2.5">
             {product.variants.map((item) => (
               <button
-                className={`flex min-h-16 w-full cursor-pointer flex-col items-start rounded-2xl border-2 bg-card px-4 py-3 text-left text-foreground shadow-(--shadow-sm) transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                className={`flex min-h-16 w-full cursor-pointer flex-col items-start rounded-2xl border-2 bg-card px-4 py-3 text-left text-foreground shadow-(--shadow-sm) transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
                   item.id === variant.id
                     ? "border-brand"
                     : "border-transparent hover:border-[var(--warm-200)]"

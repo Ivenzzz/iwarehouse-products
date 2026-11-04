@@ -56,8 +56,8 @@
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: #ffffff;
   --border: var(--warm-200);
-  --input: var(--warm-300);
-  --ring: var(--brand-500);
+  --input: var(--warm-200);
+  --ring: var(--foreground);
   --radius: 0.625rem;
 }
 
@@ -95,7 +95,7 @@
 @layer base {
   * {
     box-sizing: border-box;
-    @apply border-border outline-primary;
+    @apply border-border outline-ring;
   }
 
   html {

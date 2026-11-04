@@ -140,7 +140,7 @@ function OptionLink({
         onClick={onSelect}
         aria-current={selected ? "true" : undefined}
         className={cn(
-          "flex items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary",
+          "flex items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
           isParent && "font-semibold",
           indented && "pl-5",
           selected && "font-semibold",
@@ -288,7 +288,7 @@ function FilterChip({
       trigger={active?.label ?? filter.label}
       triggerLabel={active ? `${filter.label}: ${active.label}` : undefined}
       triggerClassName={cn(
-        "inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl border bg-card px-3.5 text-sm font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-primary data-[state=open]:border-foreground",
+        "inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl border bg-card px-3.5 text-sm font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:border-foreground",
         active
           ? "border-foreground"
           : "border-border hover:border-[var(--warm-300)]",
@@ -327,7 +327,7 @@ function SortMenu({ query }: { query: RawSearchParams }) {
           <span className="text-muted-foreground">{current.label}</span>
         </span>
       }
-      triggerClassName="inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-lg text-sm whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-primary"
+      triggerClassName="inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-lg text-sm whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-ring"
       width="w-60"
     >
       {(close) => (
@@ -406,7 +406,7 @@ export function CatalogFilterBar({
             />
           ))}
           <Search
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-foreground"
             aria-hidden="true"
           />
           <Input
