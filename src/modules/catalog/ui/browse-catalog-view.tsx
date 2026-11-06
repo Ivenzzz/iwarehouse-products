@@ -2,6 +2,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import type { BrowseCatalogViewModel } from "../model";
 import { CatalogFilterBar } from "./catalog-filter-bar";
 import { CatalogPagination } from "./catalog-pagination";
+import { PageBreadcrumb } from "./page-breadcrumb";
 import { ProductGrid } from "./product-grid";
 
 export function BrowseCatalogView({
@@ -10,8 +11,9 @@ export function BrowseCatalogView({
   catalog: BrowseCatalogViewModel;
 }) {
   return (
-    <section className="py-14 max-[680px]:py-9">
+    <section className="pt-10 pb-14 max-[680px]:pt-6 max-[680px]:pb-9">
       <div className="shell">
+        <PageBreadcrumb current="Products" />
         <SectionHeading
           as="h1"
           title="Explore iWarehouse Products"

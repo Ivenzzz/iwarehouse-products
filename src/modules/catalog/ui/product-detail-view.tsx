@@ -1,14 +1,6 @@
-import Link from "next/link";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { SectionHeading } from "@/components/ui/section-heading";
 import type { ProductDetailViewModel } from "../model";
+import { PageBreadcrumb } from "./page-breadcrumb";
 import { VariantBrowser } from "./variant-browser";
 
 export function ProductDetailView({
@@ -41,25 +33,10 @@ export function ProductDetailView({
   return (
     <section className="py-10 max-[680px]:py-6">
       <div className="shell">
-        <Breadcrumb className="mb-6">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link href="/">Home</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link href="/products">Products</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{product.name}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageBreadcrumb
+          parents={[{ href: "/products", label: "Products" }]}
+          current={product.name}
+        />
         <VariantBrowser product={product} />
         {product.specifications.length ? (
           <section className="mt-16 max-[680px]:mt-12">

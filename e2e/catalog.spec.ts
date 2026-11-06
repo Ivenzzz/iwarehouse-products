@@ -136,6 +136,36 @@ test("catalog filters stay in the URL and ERP failures have a friendly state", a
   await expect(page.getByRole("heading", { name: /can’t load products right now/i })).toBeVisible();
 });
 
+test("catalog and stores pages link back to the homepage with a breadcrumb", async ({
+  page,
+}) => {
+  const breadcrumb = page.getByRole("navigation", { name: "breadcrumb" });
+
+  for (const [path, current] of [
+    ["/products", "Products"],
+    ["/products?brand=1", "Products"],
+    ["/stores", "Our stores"],
+  ]) {
+    await page.goto(path);
+    await expect(breadcrumb.getByText(current, { exact: true })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await breadcrumb.getByRole("link", { name: "Home" }).click();
+    await expect(page).toHaveURL("/");
+    await expect(
+      page.getByRole("heading", { name: /your next tech upgrade/i }),
+    ).toBeVisible();
+  }
+
+  // The catalog-unavailable screen deliberately has no breadcrumb.
+  await page.goto("/products?q=unavailable");
+  await expect(
+    page.getByRole("heading", { name: /can’t load products right now/i }),
+  ).toBeVisible();
+  await expect(breadcrumb).toHaveCount(0);
+});
+
 test("non-canonical product URLs redirect to the stable slug", async ({ page }) => {
   await page.goto("/products/17-old-name");
   await expect(page).toHaveURL(/\/products\/17-apple-iphone-17-pro$/);

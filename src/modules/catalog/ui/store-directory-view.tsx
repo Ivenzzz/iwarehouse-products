@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/ui/section-heading";
 import type { StoreDirectoryViewModel } from "../model";
 import { directionsUrl } from "../presentation";
+import { PageBreadcrumb } from "./page-breadcrumb";
 
 const typeLabels: Record<string, string> = {
   store: "Store",
@@ -17,7 +18,8 @@ export function StoreDirectoryView({
   directory: StoreDirectoryViewModel;
 }) {
   return (
-    <section className="shell py-14 max-[680px]:py-9">
+    <section className="shell pt-10 pb-14 max-[680px]:pt-6 max-[680px]:pb-9">
+      <PageBreadcrumb current="Our stores" />
       <SectionHeading
         as="h1"
         title="Our stores"
