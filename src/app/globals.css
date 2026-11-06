@@ -9,14 +9,15 @@
  * feature-specific layout and state styling lives with the owning markup.
  *
  * The site is light, with black, white, and brand orange. --brand is the fill
- * and carries black text, because white fails contrast against it. --primary
- * is the darker orange for text, because --brand is too faint on light
- * surfaces. --brand-400 is the orange for text on black cards.
+ * and carries black text, because white fails contrast against it. It also
+ * works as text on black cards. --primary is the darker orange for text,
+ * because --brand is too faint on light surfaces. --brand-600 outlines a --brand
+ * fill on white, which the fill alone is too light to stand out against.
  */
 :root {
   --brand-50: #fff1e6;
-  --brand-400: #ff8a33;
-  --brand-500: #ff6d00;
+  --brand-500: #ff8a3d;
+  --brand-600: #c75300;
   --brand-700: #b84a00;
 
   --warm-100: #ebebe7;

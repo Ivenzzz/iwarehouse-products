@@ -50,7 +50,7 @@ export function StoreHighlights({
             className="flex min-h-[280px] flex-col items-start rounded-card bg-(--night) p-8 text-white max-[680px]:min-h-[240px] max-[680px]:p-6"
             key={card.href}
           >
-            <h2 className="m-0 text-[1.75rem] leading-[1.15] font-bold tracking-[-0.02em] text-[var(--brand-400)] max-[680px]:text-[1.5rem]">
+            <h2 className="m-0 text-[1.75rem] leading-[1.15] font-bold tracking-[-0.02em] text-brand max-[680px]:text-[1.5rem]">
               {card.title}
             </h2>
             <p className="mt-3 mb-6 max-w-[42ch] text-base leading-[1.6] text-[var(--night-copy)]">

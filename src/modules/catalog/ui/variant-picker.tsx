@@ -31,7 +31,7 @@ function OptionRow({
               className={cn(
                 "relative inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border bg-card px-4 text-sm font-semibold has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring max-[680px]:min-h-11",
                 checked &&
-                  "border-brand bg-brand text-primary-foreground",
+                  "border-[var(--brand-600)] bg-brand text-primary-foreground",
                 !checked &&
                   !dimmed &&
                   "border-border hover:border-[var(--warm-300)]",
