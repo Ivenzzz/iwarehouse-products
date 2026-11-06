@@ -26,9 +26,11 @@ const linkColumns: Array<{
 export function SiteFooter({
   logo,
   contactPhone,
+  showCustomerPolicies = false,
 }: {
   logo?: BrandLogo | null;
   contactPhone?: string | null;
+  showCustomerPolicies?: boolean;
 }) {
   return (
     <footer className="border-t border-border pt-10 pb-6 text-xs leading-[1.6] text-muted-foreground">
@@ -89,7 +91,17 @@ export function SiteFooter({
           © {new Date().getFullYear()} iWarehouse Corporation. All rights
           reserved.
         </p>
-        <div className="flex items-center gap-5">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          {showCustomerPolicies ? (
+            <>
+              <Link href="/privacy" className="transition-colors hover:text-foreground hover:underline">
+                Privacy notice
+              </Link>
+              <Link href="/review-guidelines" className="transition-colors hover:text-foreground hover:underline">
+                Review guidelines
+              </Link>
+            </>
+          ) : null}
           {/* A plain anchor: sitemap.xml is not an app page. */}
           <a
             href="/sitemap.xml"

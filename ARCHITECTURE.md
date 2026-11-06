@@ -9,6 +9,9 @@ internals.
 
 - `src/modules/catalog` owns catalog browsing, product resolution, sitemap
   traversal, ERP validation/mapping, and catalog-specific UI.
+- `src/modules/customers` owns customer accounts, the sign-in cookie, product
+  reviews, and their UI. The ERP stores all of it; this module never keeps data
+  of its own beyond the session cookie.
 - `src/app` owns routing, Next.js metadata/navigation calls, and homepage
   composition.
 - `src/components/site` owns the shared header, footer, and brand mark.
@@ -17,16 +20,17 @@ internals.
 Dependencies point inward through public interfaces:
 
 ```text
-src/app ───────────────> @/modules/catalog
+src/app ───────────────> @/modules/catalog, @/modules/customers
    │
    └───────────────────> @/components/ui, @/components/site
 
-src/modules/catalog/ui ─> @/components/ui
+src/modules/*/ui ───────> @/components/ui
 src/components/* ───────> never import feature modules
 ```
 
-ESLint enforces these rules. Routes may import `@/modules/catalog`, but may not
-deep-import its implementation.
+ESLint enforces these rules. Routes may import a module's public interface, but
+may not deep-import its implementation. Modules don't import each other: the
+product page route composes catalog and customer views together.
 
 ## Catalog interface
 
@@ -53,6 +57,22 @@ module.
    workflow only for a distinct caller use case.
 4. Keep catalog UI inside the module and export only route-facing views.
 5. Run lint, typecheck, unit tests, the production build, and Playwright.
+
+## Customers interface
+
+Only this site's server talks to the ERP's `/api/v1/storefront` API. It sends the
+machine token in `X-Storefront-Token`, the customer's token in `Authorization`,
+and the visitor's address in `X-Storefront-Client-Ip` for per-person rate limits.
+
+- Nothing in this module is cached, not even public reviews. The catalog's
+  time-based cache serves its old copy to the next visitor however long ago it
+  expired, which would let a removed review reappear on a quiet product page.
+- `loadProductReviewsSection` never throws for an ERP problem, so a reviews outage
+  can't break a product page.
+- The root layout must not read cookies. That would render every page per visitor.
+- `CUSTOMER_REVIEWS_LIVE` gates what shoppers see. See `src/modules/customers/release.ts`.
+
+Tests compose workflows with an in-memory `CustomerSource` and `SessionStore`.
 
 ## Styling
 

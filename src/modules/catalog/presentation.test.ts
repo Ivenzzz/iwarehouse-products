@@ -7,11 +7,21 @@ import {
   memoryLabels,
   nameStartsWithBrand,
   productPath,
+  serializeJsonLd,
   swatchColor,
   UNKNOWN_SWATCH_COLOR,
 } from "./presentation";
 
 describe("catalog presentation", () => {
+  it("keeps text from closing the inline JSON-LD script tag", () => {
+    const body = "Nice </script><script>alert(1)</script>";
+
+    const serialized = serializeJsonLd({ reviewBody: body });
+
+    expect(serialized).not.toContain("<");
+    expect(JSON.parse(serialized)).toEqual({ reviewBody: body });
+  });
+
   it("orders memory by real storage size, then RAM", () => {
     const small = { ram: "8GB", rom: "512GB" };
     const large = { ram: "12GB", rom: "1TB" };

@@ -1,4 +1,4 @@
-import { MapPin, Menu } from "lucide-react";
+import { CircleUser, MapPin, Menu } from "lucide-react";
 import Link from "next/link";
 import { BrandMark, type BrandLogo } from "./brand-mark";
 import { SiteNav, type SiteNavData } from "./site-nav";
@@ -6,9 +6,11 @@ import { SiteNav, type SiteNavData } from "./site-nav";
 export function SiteHeader({
   logo,
   nav,
+  showAccountLink = false,
 }: {
   logo?: BrandLogo | null;
   nav: SiteNavData;
+  showAccountLink?: boolean;
 }) {
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--border-a82)] bg-background/80 backdrop-blur-[16px]">
@@ -27,6 +29,17 @@ export function SiteHeader({
             <MapPin className="size-4" aria-hidden="true" />
             Search stores
           </Link>
+
+          {showAccountLink ? (
+            <Link
+              href="/account"
+              aria-label="Your account"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold whitespace-nowrap text-primary transition-colors hover:bg-[var(--brand-50)] max-[680px]:px-2"
+            >
+              <CircleUser className="size-4" aria-hidden="true" />
+              <span className="max-[680px]:hidden">Account</span>
+            </Link>
+          ) : null}
 
           <details className="relative hidden max-[980px]:block">
             <summary

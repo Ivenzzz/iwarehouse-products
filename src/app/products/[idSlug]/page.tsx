@@ -8,6 +8,7 @@ import {
   type ProductDetailViewModel,
   type RawSearchParams,
 } from "@/modules/catalog";
+import { loadProductReviewsSection, ProductReviewsView } from "@/modules/customers";
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +77,25 @@ export default async function ProductDetailPage({
           <CatalogUnavailableView />
         </section>
       );
-    case "ready":
-      return <ProductDetailView product={resolution.data} />;
+    case "ready": {
+      const product = resolution.data;
+      const { reviews_page: reviewsPage } = await searchParams;
+      const reviews = await loadProductReviewsSection(product.id, reviewsPage);
+
+      return (
+        <ProductDetailView
+          product={product}
+          structuredData={reviews.status === "visible" ? reviews.structuredData : undefined}
+          reviews={
+            reviews.status === "visible" ? (
+              <ProductReviewsView
+                section={reviews}
+                productPath={`/products/${product.id}-${product.slug}`}
+              />
+            ) : null
+          }
+        />
+      );
+    }
   }
 }

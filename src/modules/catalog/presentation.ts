@@ -146,6 +146,14 @@ export function directionsUrl(
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
+/**
+ * JSON for an inline <script> tag. "<" is escaped so text from anyone, such as a
+ * customer review, can't close the tag and run as a script.
+ */
+export function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
 export function joinQuery(
   current: Record<string, string | string[] | undefined>,
   updates: Record<string, string | number | undefined>,

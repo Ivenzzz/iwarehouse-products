@@ -1,12 +1,22 @@
+import type { ReactNode } from "react";
 import { SectionHeading } from "@/components/ui/section-heading";
 import type { ProductDetailViewModel } from "../model";
+import { serializeJsonLd } from "../presentation";
 import { PageBreadcrumb } from "./page-breadcrumb";
 import { VariantBrowser } from "./variant-browser";
 
+/**
+ * `reviews` and `structuredData` are composed by the route, so the catalog needs
+ * no knowledge of the module that owns reviews.
+ */
 export function ProductDetailView({
   product,
+  reviews,
+  structuredData,
 }: {
   product: ProductDetailViewModel;
+  reviews?: ReactNode;
+  structuredData?: Record<string, unknown>;
 }) {
   const prices = product.variants
     .map((variant) => variant.cashPriceFrom)
@@ -28,6 +38,7 @@ export function ProductDetailView({
           availability: "https://schema.org/InStock",
         }
       : undefined,
+    ...structuredData,
   };
 
   return (
@@ -69,9 +80,10 @@ export function ProductDetailView({
             </div>
           </section>
         ) : null}
+        {reviews}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
         />
       </div>
     </section>

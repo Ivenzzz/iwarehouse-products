@@ -14,9 +14,9 @@ export default defineConfig([
         {
           patterns: [
             {
-              group: ["@/modules/catalog/*"],
+              group: ["@/modules/*/*"],
               message:
-                "App routes must use the catalog module's public @/modules/catalog interface.",
+                "App routes must use a module's public interface, such as @/modules/catalog.",
             },
           ],
         },

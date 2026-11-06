@@ -8,6 +8,7 @@ import {
   loadSiteNavigation,
   loadStoreLocations,
 } from "@/modules/catalog";
+import { isCustomerReviewsLive } from "@/modules/customers";
 import "./globals.css";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
@@ -41,13 +42,20 @@ export default async function RootLayout({
   // Footer chrome degrades gracefully: no reachable store phone, no Call Us.
   const contactPhone =
     stores.status === "ready" ? firstStorePhone(stores.data) : null;
+  // A plain setting, not the session: reading cookies here would make every
+  // page render per visitor. /account works out who is signed in itself.
+  const customerFeaturesLive = isCustomerReviewsLive();
 
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body className={manrope.variable}>
-        <SiteHeader logo={logo} nav={nav} />
+        <SiteHeader logo={logo} nav={nav} showAccountLink={customerFeaturesLive} />
         <main>{children}</main>
-        <SiteFooter logo={logo} contactPhone={contactPhone} />
+        <SiteFooter
+          logo={logo}
+          contactPhone={contactPhone}
+          showCustomerPolicies={customerFeaturesLive}
+        />
       </body>
     </html>
   );
