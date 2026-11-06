@@ -136,6 +136,9 @@ export function ProductCard({
       <Link
         className="absolute inset-0 rounded-card focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
         href={productPath(product)}
+        // Prefetching several product pages left the browser tab title blank
+        // after clicking through, in about 1 of 5 visits on Next.js 16.3.
+        prefetch={false}
         aria-label={`View ${product.name}`}
       />
     </Card>
