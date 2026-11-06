@@ -1,15 +1,36 @@
 import { describe, expect, it } from "vitest";
 import {
+  compareMemory,
   directionsUrl,
   firstStorePhone,
   formatPeso,
   memoryLabels,
+  nameStartsWithBrand,
   productPath,
   swatchColor,
   UNKNOWN_SWATCH_COLOR,
 } from "./presentation";
 
 describe("catalog presentation", () => {
+  it("orders memory by real storage size, then RAM", () => {
+    const small = { ram: "8GB", rom: "512GB" };
+    const large = { ram: "12GB", rom: "1TB" };
+    const moreRam = { ram: "12GB", rom: "512GB" };
+
+    expect(compareMemory(small, large)).toBeLessThan(0);
+    expect(compareMemory(large, small)).toBeGreaterThan(0);
+    expect(compareMemory(small, moreRam)).toBeLessThan(0);
+    expect(compareMemory(small, { ...small })).toBe(0);
+  });
+
+  it("knows when a product name already starts with its brand", () => {
+    expect(nameStartsWithBrand("APPLE IPHONE 18 PRO MAX", "Apple")).toBe(true);
+    expect(nameStartsWithBrand("Apple", "Apple")).toBe(true);
+    expect(nameStartsWithBrand("Galaxy S26", "Samsung")).toBe(false);
+    expect(nameStartsWithBrand("Applewood Stand", "Apple")).toBe(false);
+    expect(nameStartsWithBrand("Anything", "")).toBe(false);
+  });
+
   it("picks a swatch from the color word in a product color name", () => {
     expect(swatchColor("Black")).toBe(swatchColor("BLACK"));
     expect(swatchColor("ICE BLUE")).toBe(swatchColor("Blue"));

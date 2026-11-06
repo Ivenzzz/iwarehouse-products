@@ -58,22 +58,31 @@ const detail = {
     },
   ],
   variants: [
-    {
-      id: 21,
-      name: "Apple iPhone 17 Pro 8GB 256GB Black",
-      condition: "Brand New",
-      attributes: [
-        { key: "ram", label: "RAM", value: "8GB" },
-        { key: "rom", label: "Storage", value: "256GB" },
-        { key: "color", label: "Color", value: "Black" },
-      ],
-      image_url: null,
-      cash_price_from: 42000,
-      srp_price: 47000,
-      locations: [location],
-    },
+    variant(24, "Natural Titanium", "12GB", "1TB", 65000, [kioskLocation]),
+    variant(22, "Black", "12GB", "512GB", 52000, [location, kioskLocation]),
+    variant(23, "Ice Blue", "8GB", "256GB", 43000, [location]),
+    variant(21, "Black", "8GB", "256GB", 42000, [location]),
   ],
 };
+
+// Attribute order and labels match the ERP's definitions.
+function variant(id, color, ram, rom, price, locations) {
+  return {
+    id,
+    name: `Apple iPhone 17 Pro ${ram} ${rom} ${color}`,
+    condition: "Brand New",
+    attributes: [
+      { key: "color", label: "Color", value: color },
+      { key: "ram", label: "RAM", value: ram },
+      { key: "rom", label: "ROM", value: rom },
+      { key: "cpu", label: "CPU", value: "Apple A19 Pro" },
+    ],
+    image_url: null,
+    cash_price_from: price,
+    srp_price: price + 5000,
+    locations,
+  };
+}
 
 const filters = {
   brands: [{ id: 1, name: "Apple" }],

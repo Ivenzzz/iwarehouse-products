@@ -37,7 +37,7 @@ export function ProductDetailView({
           parents={[{ href: "/products", label: "Products" }]}
           current={product.name}
         />
-        <VariantBrowser product={product} />
+        <VariantBrowser key={product.id} product={product} />
         {product.specifications.length ? (
           <section className="mt-16 max-[680px]:mt-12">
             <SectionHeading

@@ -14,6 +14,7 @@ const SWATCH_COLORS: Record<string, string> = {
   graphite: "#3f4044",
   gray: "#8a8a8f",
   grey: "#8a8a8f",
+  glacier: "#cfe3ea",
   titanium: "#a8a39a",
   silver: "#d4d4d6",
   white: "#f7f7f5",
@@ -60,19 +61,25 @@ function sizeInGb(value: string | null): number | null {
   return match ? Number(match[1]) * SIZE_UNITS[match[2].toUpperCase()] : null;
 }
 
-/** Labels like "8GB/256GB", smallest storage first. Unreadable sizes go last. */
-export function memoryLabels(
-  configurations: CatalogMemoryConfiguration[],
-): string[] {
+/** Smallest storage first, then smallest RAM. Unreadable sizes go last. */
+export function compareMemory(
+  a: CatalogMemoryConfiguration,
+  b: CatalogMemoryConfiguration,
+): number {
   const sortKey = ({ ram, rom }: CatalogMemoryConfiguration) => [
     (rom ? sizeInGb(rom) : sizeInGb(ram)) ?? Number.POSITIVE_INFINITY,
     sizeInGb(ram) ?? 0,
   ];
-  const sorted = [...configurations].sort((a, b) => {
-    const [aPrimary, aRam] = sortKey(a);
-    const [bPrimary, bRam] = sortKey(b);
-    return aPrimary === bPrimary ? aRam - bRam : aPrimary - bPrimary;
-  });
+  const [aPrimary, aRam] = sortKey(a);
+  const [bPrimary, bRam] = sortKey(b);
+  return aPrimary === bPrimary ? aRam - bRam : aPrimary - bPrimary;
+}
+
+/** Labels like "8GB/256GB", smallest storage first. Unreadable sizes go last. */
+export function memoryLabels(
+  configurations: CatalogMemoryConfiguration[],
+): string[] {
+  const sorted = [...configurations].sort(compareMemory);
 
   return [
     ...new Set(
@@ -106,6 +113,22 @@ export function formatPeso(value: number | null): string {
     currency: "PHP",
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+/** True for "APPLE IPHONE 18" and brand "Apple", false for "Applewood" and "Apple". */
+export function nameStartsWithBrand(name: string, brand: string): boolean {
+  const normalizedName = name.trim().toLowerCase();
+  const normalizedBrand = brand.trim().toLowerCase();
+
+  return (
+    normalizedBrand !== "" &&
+    normalizedName.startsWith(normalizedBrand) &&
+    !/^[a-z0-9]/.test(normalizedName.slice(normalizedBrand.length))
+  );
+}
+
+export function locationCountLabel(count: number): string {
+  return `${count} ${count === 1 ? "location" : "locations"}`;
 }
 
 export function productPath(product: { id: number; slug: string }): string {

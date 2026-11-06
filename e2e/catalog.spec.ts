@@ -33,10 +33,10 @@ test("customer browses from the homepage to a product and store actions", async 
     "http://127.0.0.1:3100/products/17-apple-iphone-17-pro",
   );
   await expect(page.getByRole("heading", { name: "Apple iPhone 17 Pro" })).toBeVisible();
-  // exact: true — the footer's "Call Us" / "Get Directions" links would otherwise match too.
-  await expect(page.getByRole("link", { name: "Call", exact: true })).toHaveAttribute("href", "tel:+63281234567");
+  const locations = page.locator("#locations");
+  await expect(locations.getByRole("link", { name: "Call" })).toHaveAttribute("href", "tel:+63281234567");
   await expect(
-    page.getByRole("link", { name: "Directions", exact: true }),
+    locations.getByRole("link", { name: "Directions" }),
   ).toHaveAttribute("href", /google\.com\/maps/);
   await expect(page.getByText(/does not reserve an item/i)).toBeVisible();
   expect(
@@ -169,6 +169,103 @@ test("catalog and stores pages link back to the homepage with a breadcrumb", asy
 test("non-canonical product URLs redirect to the stable slug", async ({ page }) => {
   await page.goto("/products/17-old-name");
   await expect(page).toHaveURL(/\/products\/17-apple-iphone-17-pro$/);
+});
+
+const PRODUCT_PATH = "/products/17-apple-iphone-17-pro";
+
+function storesHeading(page: Page, name: string) {
+  return page.getByRole("heading", { name });
+}
+
+function chip(page: Page, name: string) {
+  return page.locator("label", { hasText: name });
+}
+
+test("customer chooses a color and memory and sees the price and stores change", async ({
+  page,
+}) => {
+  await page.goto(PRODUCT_PATH);
+
+  // Opens on the cheapest variant, whatever order the ERP sends them in.
+  await expect(page.getByText("₱42,000", { exact: true })).toBeVisible();
+  await expect(storesHeading(page, "Black, 8GB/256GB is at 1 location")).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`${PRODUCT_PATH}$`));
+
+  await chip(page, "12GB/512GB").click();
+
+  await expect(page.getByText("₱52,000", { exact: true })).toBeVisible();
+  await expect(storesHeading(page, "Black, 12GB/512GB is at 2 locations")).toBeVisible();
+  await expect(page.locator("#locations").getByText("BGC Kiosk")).toBeVisible();
+  await expect(page).toHaveURL(/\?variant=22$/);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    `http://127.0.0.1:3100${PRODUCT_PATH}`,
+  );
+});
+
+test("choosing memory that isn't in the current color moves to one that has it", async ({
+  page,
+}) => {
+  await page.goto(PRODUCT_PATH);
+
+  await expect(
+    page.getByRole("radio", { name: "12GB/1TB (not in stock with your other choices)" }),
+  ).toBeAttached();
+
+  await chip(page, "12GB/1TB").click();
+
+  await expect(
+    page.getByText("12GB/1TB is only in stock in Natural Titanium.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Natural Titanium" })).toBeChecked();
+  await expect(page.getByText("₱65,000", { exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\?variant=24$/);
+});
+
+test("the variant picker works with the keyboard", async ({ page }) => {
+  await page.goto(PRODUCT_PATH);
+
+  const black = page.getByRole("radio", { name: "Black" });
+  await black.focus();
+  await page.keyboard.press("ArrowRight");
+
+  const iceBlue = page.getByRole("radio", { name: "Ice Blue" });
+  await expect(iceBlue).toBeChecked();
+  await expect(iceBlue).toBeFocused();
+  await expect(page.getByText("₱43,000", { exact: true })).toBeVisible();
+});
+
+test("a variant link renders that variant from the server", async ({ request }) => {
+  const shared = await (await request.get(`${PRODUCT_PATH}?variant=22`)).text();
+  expect(shared).toContain("Black, 12GB/512GB is at 2 locations");
+
+  const unknown = await (await request.get(`${PRODUCT_PATH}?variant=999`)).text();
+  expect(unknown).toContain("Black, 8GB/256GB is at 1 location");
+});
+
+test("a non-canonical product URL keeps the chosen variant", async ({ page }) => {
+  await page.goto("/products/17-old-name?variant=22");
+
+  await expect(page).toHaveURL(new RegExp(`${PRODUCT_PATH}\\?variant=22$`));
+  await expect(storesHeading(page, "Black, 12GB/512GB is at 2 locations")).toBeVisible();
+});
+
+test("Back returns to the chosen variant after leaving the page", async ({ page }) => {
+  await page.goto(PRODUCT_PATH);
+  await chip(page, "Ice Blue").click();
+  await expect(page).toHaveURL(/\?variant=23$/);
+
+  await page
+    .getByRole("navigation", { name: "breadcrumb" })
+    .getByRole("link", { name: "Products" })
+    .click();
+  await expect(page).toHaveURL(/\/products$/);
+
+  await page.goBack();
+
+  await expect(page).toHaveURL(/\?variant=23$/);
+  await expect(storesHeading(page, "Ice Blue, 8GB/256GB is at 1 location")).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Ice Blue" })).toBeChecked();
 });
 
 test("product detail ERP failures use the friendly unavailable state", async ({

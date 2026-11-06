@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import {
   CatalogUnavailableView,
+  joinQuery,
   ProductDetailView,
   resolveProduct,
   type ProductDetailViewModel,
+  type RawSearchParams,
 } from "@/modules/catalog";
 
 export const dynamic = "force-dynamic";
@@ -54,8 +56,10 @@ export async function generateMetadata({
 
 export default async function ProductDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ idSlug: string }>;
+  searchParams: Promise<RawSearchParams>;
 }) {
   const { idSlug } = await params;
   const resolution = await resolveProduct(idSlug);
@@ -64,7 +68,8 @@ export default async function ProductDetailPage({
     case "not-found":
       notFound();
     case "redirect":
-      redirect(resolution.location);
+      // Keeps ?variant= so an old link still opens on the chosen variant.
+      redirect(resolution.location + joinQuery(await searchParams, {}));
     case "unavailable":
       return (
         <section className="shell py-[78px] max-[680px]:py-[55px]">
