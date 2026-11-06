@@ -84,6 +84,43 @@ function variant(id, color, ram, rom, price, locations) {
   };
 }
 
+const PHOTO_URL = "http://127.0.0.1:4010/mock-images/product.svg";
+
+const PRODUCT_PHOTO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <rect width="500" height="500" fill="#f3f4f6"/>
+  <rect x="170" y="90" width="160" height="320" rx="26" fill="#1c1c1a"/>
+</svg>`;
+
+function arrival(id, name, overrides = {}) {
+  return {
+    ...summary,
+    id,
+    slug: name.toLowerCase().replaceAll(" ", "-"),
+    name,
+    description: null,
+    image_url: PHOTO_URL,
+    cash_price_from: 40000 + id,
+    srp_price: 50000 + id,
+    ...overrides,
+  };
+}
+
+const accessories = { id: 36, name: "Chargers & Powerbanks", parent: { id: 35, name: "Accessories & Storage" } };
+
+// The hero and "Recently available" row's request, newest first. The first two
+// can't feature, so they check the storefront filters before choosing.
+const newArrivals = [
+  arrival(201, "New Charger", { category: accessories }),
+  arrival(202, "Photoless Phone", { image_url: null }),
+  arrival(101, "Newest Phone"),
+  arrival(203, "Pre-Owned Phone", { conditions: ["Certified Pre-Owned"] }),
+  arrival(102, "Second Newest Phone"),
+  arrival(103, "Third Phone"),
+  arrival(104, "Fourth Phone"),
+  arrival(105, "Fifth Phone"),
+  arrival(106, "Sixth Phone"),
+];
+
 const filters = {
   brands: [{ id: 1, name: "Apple" }],
   categories: [
@@ -154,6 +191,13 @@ const filters = {
 };
 
 const server = http.createServer((request, response) => {
+  // Before the token check, because browsers request it with no token.
+  if (request.url === "/mock-images/product.svg") {
+    response.setHeader("Content-Type", "image/svg+xml");
+    response.end(PRODUCT_PHOTO_SVG);
+    return;
+  }
+
   response.setHeader("Content-Type", "application/json");
 
   if (request.headers.authorization !== "Bearer e2e-token") {
@@ -181,6 +225,17 @@ const server = http.createServer((request, response) => {
     response.end(JSON.stringify({ data: detail }));
     return;
   }
+  // Homepage cards link to these, and Next.js prefetches links on screen.
+  const arrivalId = Number(url.pathname.match(/\/products\/(\d+)$/)?.[1]);
+  const newArrival = newArrivals.find((item) => item.id === arrivalId);
+  if (newArrival) {
+    response.end(
+      JSON.stringify({
+        data: { ...detail, ...newArrival },
+      }),
+    );
+    return;
+  }
   if (url.pathname === "/api/v1/catalog/products/503") {
     response.statusCode = 503;
     response.end(JSON.stringify({ message: "Unavailable" }));
@@ -190,6 +245,19 @@ const server = http.createServer((request, response) => {
     if (url.searchParams.get("q") === "unavailable") {
       response.statusCode = 503;
       response.end(JSON.stringify({ message: "Unavailable" }));
+      return;
+    }
+    if (
+      url.searchParams.get("sort") === "newest" &&
+      url.searchParams.get("per_page") === "48" &&
+      !url.searchParams.has("category")
+    ) {
+      response.end(
+        JSON.stringify({
+          data: newArrivals,
+          meta: { current_page: 1, per_page: 48, total: newArrivals.length, last_page: 1 },
+        }),
+      );
       return;
     }
     response.end(

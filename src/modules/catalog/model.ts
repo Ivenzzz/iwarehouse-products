@@ -140,8 +140,15 @@ export interface HomeProductRow {
   products: CatalogProductSummary[];
 }
 
+/** A pair, so the hero can't be asked to show a single product. */
+export type NewArrivals = readonly [
+  CatalogProductSummary,
+  CatalogProductSummary,
+];
+
 export interface HomeCatalogViewModel {
   filters: CatalogFilters;
+  newArrivals: NewArrivals | null;
   rows: HomeProductRow[];
 }
 

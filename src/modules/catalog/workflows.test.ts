@@ -34,8 +34,10 @@ const product: CatalogProductSummary = {
     parent: { id: 1, name: "Phones" },
   },
   description: null,
-  imageUrl: null,
-  conditions: ["Brand New"],
+  imageUrl: "https://erp.test/storage/iphone.webp",
+  // Can feature in the "Recently available" row but never the hero, so these
+  // row tests stay about rows. Hero selection has its own tests.
+  conditions: ["Certified Pre-Owned"],
   options: { colors: [], configurations: [] },
   cashPriceFrom: 42000,
   srpPrice: 47000,
@@ -98,10 +100,68 @@ describe("catalog workflows", () => {
       await createCatalogWorkflows(source).loadHomeCatalog();
 
       expect(productQueries).toEqual([
-        { sort: "newest", perPage: "4" },
+        { sort: "newest", perPage: "48" },
         { sort: "newest", category: "2", perPage: "12" },
         { sort: "newest", category: "9", perPage: "12" },
       ]);
+    });
+
+    describe("with new arrivals", () => {
+      const brandNew = (id: number): CatalogProductSummary => ({
+        ...productWithId(id),
+        conditions: ["Brand New"],
+      });
+
+      it("shows the first two in the hero and no row repeats them", async () => {
+        const source = stubSource({
+          getProducts: async (query) => {
+            if (query.category === "2") {
+              return page([1, 2, 7, 8].map(productWithId));
+            }
+            if (query.category === "9") return page([productWithId(2)]);
+            return page([1, 2, 3, 4, 5, 6, 7].map(brandNew));
+          },
+        });
+
+        const outcome = await createCatalogWorkflows(source).loadHomeCatalog();
+
+        expect(outcome).toMatchObject({
+          status: "ready",
+          data: { newArrivals: [{ id: 1 }, { id: 2 }] },
+        });
+        await expect(rowsById(source)).resolves.toEqual({
+          newest: [3, 4, 5, 6],
+          smartphones: [7, 8],
+        });
+      });
+
+      it("has no hero below two Brand New products, leaving them to the row", async () => {
+        const source = stubSource({
+          getProducts: async (query) =>
+            query.category ? page([]) : page([brandNew(1), productWithId(2)]),
+        });
+
+        const outcome = await createCatalogWorkflows(source).loadHomeCatalog();
+
+        expect(outcome).toMatchObject({
+          status: "ready",
+          data: { newArrivals: null },
+        });
+        await expect(rowsById(source)).resolves.toEqual({ newest: [1, 2] });
+      });
+
+      it("drops the row when the hero uses every product", async () => {
+        const source = stubSource({
+          getProducts: async (query) =>
+            query.category === "2"
+              ? page([productWithId(9)])
+              : query.category
+                ? page([])
+                : page([brandNew(1), brandNew(2)]),
+        });
+
+        await expect(rowsById(source)).resolves.toEqual({ smartphones: [9] });
+      });
     });
 
     it("still fills a category row to 4 after removing duplicates", async () => {

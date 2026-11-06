@@ -26,5 +26,6 @@ export { firstStorePhone, joinQuery } from "./presentation";
 export { BrowseCatalogView } from "./ui/browse-catalog-view";
 export { CatalogUnavailableView } from "./ui/catalog-unavailable-view";
 export { HomeCatalogSections } from "./ui/home-catalog-sections";
+export { HomeNewArrivals } from "./ui/home-new-arrivals";
 export { ProductDetailView } from "./ui/product-detail-view";
 export { StoreDirectoryView } from "./ui/store-directory-view";

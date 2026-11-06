@@ -13,6 +13,7 @@ import type {
   SitemapProduct,
   StoreDirectoryViewModel,
 } from "./model";
+import { selectHomeProducts } from "./home-selection";
 import { CatalogSourceError, type CatalogSource } from "./source";
 
 function unavailableOutcome(error: unknown): { status: "unavailable" } {
@@ -68,11 +69,13 @@ interface HomeRowDefinition extends Omit<HomeProductRow, "products"> {
   query: CatalogQuery;
 }
 
+// Fetches the ERP's maximum, because the hero and this row only use products
+// that pass selectHomeProducts.
 const NEWEST_ROW: HomeRowDefinition = {
   id: "newest",
   title: "Recently available",
   href: "/products?sort=newest",
-  query: { sort: "newest", perPage: "4" },
+  query: { sort: "newest", perPage: "48" },
 };
 
 const PRODUCTS_PER_ROW = 4;
@@ -100,8 +103,9 @@ function buildHomeRows(
     definition: HomeRowDefinition;
     products: CatalogProductSummary[];
   }>,
+  alreadyShown: readonly CatalogProductSummary[],
 ): HomeProductRow[] {
-  const seen = new Set<number>();
+  const seen = new Set(alreadyShown.map((product) => product.id));
 
   return rows.flatMap(({ definition, products }) => {
     const unique = products
@@ -138,14 +142,22 @@ export function createCatalogWorkflows(source: CatalogSource) {
           throw result.reason;
         });
 
+        const { newArrivals, recentlyAvailable } = selectHomeProducts(
+          newest.data,
+        );
+
         return {
           status: "ready",
           data: {
             filters,
-            rows: buildHomeRows([
-              { definition: NEWEST_ROW, products: newest.data },
-              ...categoryRows,
-            ]),
+            newArrivals,
+            rows: buildHomeRows(
+              [
+                { definition: NEWEST_ROW, products: recentlyAvailable },
+                ...categoryRows,
+              ],
+              newArrivals ?? [],
+            ),
           },
         };
       } catch (error) {

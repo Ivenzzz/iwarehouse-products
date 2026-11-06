@@ -44,6 +44,111 @@ test("customer browses from the homepage to a product and store actions", async 
   ).toContain('"@type":"Product"');
 });
 
+function newArrivalsSection(page: Page) {
+  return page.locator("section", {
+    has: page.getByRole("heading", { name: "New arrivals" }),
+  });
+}
+
+test("the homepage hero features the two newest products that qualify", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const section = newArrivalsSection(page);
+  const cards = section.getByRole("link", { name: /^View / });
+  await expect(cards).toHaveCount(2);
+  await expect(cards.nth(0)).toHaveAccessibleName("View Newest Phone");
+  await expect(cards.nth(0)).toHaveAttribute("href", "/products/101-newest-phone");
+  await expect(cards.nth(1)).toHaveAccessibleName("View Second Newest Phone");
+  await expect(section.getByText("₱40,101", { exact: true })).toBeVisible();
+  await expect(
+    section.getByRole("link", { name: "See all new arrivals" }),
+  ).toHaveAttribute("href", "/products?sort=newest");
+
+  const images = section.locator("img");
+  await expect(images).toHaveCount(2);
+  for (const image of await images.all()) {
+    await expect
+      .poll(() => image.evaluate((node: HTMLImageElement) => node.naturalWidth))
+      .toBeGreaterThan(0);
+  }
+});
+
+test("a new arrival card opens its product with the right tab title", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  await newArrivalsSection(page)
+    .getByRole("link", { name: "View Newest Phone" })
+    .click();
+
+  await expect(page).toHaveURL(/\/products\/101-newest-phone$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Newest Phone" })).toBeVisible();
+  await expect(page).toHaveTitle("Newest Phone | iWarehouse");
+});
+
+test("the row below the hero skips its products and what can't feature", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const row = page.locator("section", {
+    has: page.getByRole("heading", { name: "Recently available" }),
+  });
+  await expect(row.getByRole("link", { name: /^View / })).toHaveCount(4);
+  expect(
+    await row
+      .getByRole("link", { name: /^View / })
+      .evaluateAll((links) => links.map((link) => link.getAttribute("aria-label"))),
+  ).toEqual([
+    "View Pre-Owned Phone",
+    "View Third Phone",
+    "View Fourth Phone",
+    "View Fifth Phone",
+  ]);
+
+  // Featured nowhere on the homepage, and no product is shown twice.
+  await expect(page.getByRole("link", { name: "View New Charger" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "View Photoless Phone" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "View Newest Phone" })).toHaveCount(1);
+  await expect(page.getByRole("link", { name: "View Second Newest Phone" })).toHaveCount(1);
+});
+
+test("search comes before new arrivals when the hero stacks", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.goto("/");
+
+  const search = await page.getByRole("textbox", { name: "Search products" }).boundingBox();
+  const cards = await newArrivalsSection(page)
+    .getByRole("link", { name: /^View / })
+    .evaluateAll((links) => links.map((link) => link.getBoundingClientRect().top));
+
+  expect(search).not.toBeNull();
+  expect(cards[0]).toBeGreaterThan(search!.y);
+  // Two across, so both cards start on the same line.
+  expect(cards[1]).toBe(cards[0]);
+});
+
+test("the homepage hero fits without sideways scrolling at every width", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  for (const width of [1280, 1100, 980, 860, 680, 375]) {
+    await page.setViewportSize({ width, height: 800 });
+    expect
+      .soft(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth - window.innerWidth,
+        ),
+        `overflow at ${width}px`,
+      )
+      .toBeLessThanOrEqual(0);
+  }
+});
+
 test("header navigation exposes catalog dropdowns and the stores page", async ({
   page,
   isMobile,

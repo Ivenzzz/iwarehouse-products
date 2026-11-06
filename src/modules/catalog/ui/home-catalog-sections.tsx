@@ -78,9 +78,10 @@ export function HomeCatalogSections({
         </section>
       )}
 
+      {/* The hero's photos load first when it's showing. */}
       {firstRow ? (
-        <ProductRow row={firstRow} priority />
-      ) : (
+        <ProductRow row={firstRow} priority={!catalog.newArrivals} />
+      ) : catalog.newArrivals ? null : (
         <section className="shell py-8 max-[680px]:py-6">
           <ProductGrid products={[]} />
         </section>
