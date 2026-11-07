@@ -1,12 +1,14 @@
 import { PRIVACY_NOTICE_VERSION, type CustomerAccount, type OwnReview } from "../model";
 import {
   CustomerSourceError,
+  type CustomerSession,
   type CustomerSource,
 } from "../source";
 import {
   accountResponseDtoSchema,
   errorDtoSchema,
-  loginResponseDtoSchema,
+  googleRegisterResponseDtoSchema,
+  googleSignInResponseDtoSchema,
   nullableOwnReviewResponseDtoSchema,
   ownReviewResponseDtoSchema,
   ownReviewsResponseDtoSchema,
@@ -42,7 +44,18 @@ function mapAccount(account: AccountDto): CustomerAccount {
     lastName: account.last_name,
     publicName: account.public_name,
     email: account.email,
-    emailVerified: account.email_verified,
+  };
+}
+
+function mapSession(dto: {
+  token: string;
+  expires_at: string | null;
+  account: AccountDto;
+}): CustomerSession {
+  return {
+    token: dto.token,
+    expiresAt: dto.expires_at,
+    account: mapAccount(dto.account),
   };
 }
 
@@ -68,15 +81,18 @@ async function errorFrom(response: Response): Promise<CustomerSourceError> {
       return body.message === "Unauthenticated."
         ? new CustomerSourceError("unauthenticated", "Please sign in again.")
         : new CustomerSourceError("unavailable");
-    case 403:
-      return body.code === "email_unverified"
-        ? new CustomerSourceError("email-unverified", "Please confirm your email address first.")
-        : new CustomerSourceError("unavailable");
     case 404:
       return new CustomerSourceError("not-found", "We couldn’t find that.");
     case 409:
-      return new CustomerSourceError("already-reviewed", "You have already reviewed this product.");
+      return new CustomerSourceError("conflict", body.message ?? "That couldn’t be completed.");
     case 422: {
+      if (body.code === "google_token_invalid") {
+        return new CustomerSourceError("google-token-invalid", body.message);
+      }
+      if (body.code === "google_email_unverified") {
+        return new CustomerSourceError("google-email-unverified", body.message);
+      }
+
       const fieldErrors = Object.fromEntries(
         Object.entries(body.errors ?? {}).map(([field, messages]) => [
           FIELD_NAMES[field] ?? field,
@@ -150,50 +166,44 @@ export function createErpCustomerSource({
   }
 
   return {
-    async register(input) {
-      await storefront("POST", "/auth/register", {
-        body: {
-          first_name: input.firstName,
-          last_name: input.lastName,
-          email: input.email,
-          password: input.password,
-          privacy_accepted: true,
-          privacy_notice_version: PRIVACY_NOTICE_VERSION,
-        },
+    signInWithGoogle(idToken, nonce) {
+      return parsed(async () => {
+        const dto = googleSignInResponseDtoSchema.parse(
+          await storefront("POST", "/auth/google", { body: { id_token: idToken, nonce } }),
+        );
+
+        return dto.status === "signed_in"
+          ? { status: "signed-in" as const, session: mapSession(dto) }
+          : {
+              status: "needs-confirmation" as const,
+              firstName: dto.first_name,
+              lastName: dto.last_name,
+              email: dto.email,
+            };
       });
     },
 
-    login(email, password) {
-      return parsed(async () => {
-        const session = loginResponseDtoSchema.parse(
-          await storefront("POST", "/auth/login", { body: { email, password } }),
-        );
-        return {
-          token: session.token,
-          expiresAt: session.expires_at,
-          account: mapAccount(session.account),
-        };
-      });
+    registerWithGoogle(registration) {
+      return parsed(async () =>
+        mapSession(
+          googleRegisterResponseDtoSchema.parse(
+            await storefront("POST", "/auth/google/register", {
+              body: {
+                id_token: registration.idToken,
+                nonce: registration.nonce,
+                first_name: registration.firstName,
+                last_name: registration.lastName,
+                privacy_accepted: true,
+                privacy_notice_version: PRIVACY_NOTICE_VERSION,
+              },
+            }),
+          ),
+        ),
+      );
     },
 
     async logout(customerToken) {
       await storefront("DELETE", "/auth/logout", { customerToken });
-    },
-
-    async forgotPassword(email) {
-      await storefront("POST", "/auth/forgot-password", { body: { email } });
-    },
-
-    async resetPassword(input) {
-      await storefront("POST", "/auth/reset-password", { body: input });
-    },
-
-    async verifyEmail(link) {
-      await storefront("POST", "/auth/verify-email", { body: link });
-    },
-
-    async resendVerification(customerToken) {
-      await storefront("POST", "/auth/resend-verification", { customerToken });
     },
 
     getAccount(customerToken) {
@@ -206,8 +216,8 @@ export function createErpCustomerSource({
       );
     },
 
-    async deleteAccount(customerToken, password) {
-      await storefront("DELETE", "/me", { customerToken, body: { password } });
+    async deleteAccount(customerToken, email) {
+      await storefront("DELETE", "/me", { customerToken, body: { email } });
     },
 
     listOwnReviews(customerToken) {

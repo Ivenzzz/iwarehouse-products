@@ -8,8 +8,9 @@ import type {
 export type CustomerSourceErrorKind =
   | "validation"
   | "unauthenticated"
-  | "email-unverified"
-  | "already-reviewed"
+  | "google-token-invalid"
+  | "google-email-unverified"
+  | "conflict"
   | "not-found"
   | "rate-limited"
   | "unavailable";
@@ -25,35 +26,29 @@ export class CustomerSourceError extends Error {
   }
 }
 
-export interface RegistrationInput {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-}
-
-export interface VerificationLink {
-  id: string;
-  expires: string;
-  signature: string;
-}
-
 export interface CustomerSession {
   token: string;
   expiresAt: string | null;
   account: CustomerAccount;
 }
 
+export type GoogleSignInOutcome =
+  | { status: "signed-in"; session: CustomerSession }
+  | { status: "needs-confirmation"; firstName: string; lastName: string; email: string };
+
+export interface GoogleRegistration {
+  idToken: string;
+  nonce: string;
+  firstName: string;
+  lastName: string;
+}
+
 export interface CustomerSource {
-  register(input: RegistrationInput): Promise<void>;
-  login(email: string, password: string): Promise<CustomerSession>;
+  signInWithGoogle(idToken: string, nonce: string): Promise<GoogleSignInOutcome>;
+  registerWithGoogle(registration: GoogleRegistration): Promise<CustomerSession>;
   logout(token: string): Promise<void>;
-  forgotPassword(email: string): Promise<void>;
-  resetPassword(input: { email: string; token: string; password: string }): Promise<void>;
-  verifyEmail(link: VerificationLink): Promise<void>;
-  resendVerification(token: string): Promise<void>;
   getAccount(token: string): Promise<CustomerAccount>;
-  deleteAccount(token: string, password: string): Promise<void>;
+  deleteAccount(token: string, email: string): Promise<void>;
   listOwnReviews(token: string): Promise<OwnReview[]>;
   getOwnReview(token: string, reviewId: number): Promise<OwnReview>;
   getOwnReviewForProduct(token: string, productId: number): Promise<OwnReview | null>;
@@ -68,4 +63,36 @@ export interface SessionStore {
   read(): Promise<string | null>;
   write(token: string, expiresAt: string | null): Promise<void>;
   clear(): Promise<void>;
+}
+
+/** Remembered while the customer is away at Google. */
+export interface GoogleFlow {
+  state: string;
+  codeVerifier: string;
+  nonce: string;
+  next: string;
+}
+
+/** A new customer who has been to Google but hasn't agreed to anything yet. */
+export interface PendingGoogleAccount {
+  idToken: string;
+  nonce: string;
+  next: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+/** A short-lived value kept for one visitor. Backed by a cookie in production. */
+export interface VisitorStore<T> {
+  read(): Promise<T | null>;
+  write(value: T): Promise<void>;
+  clear(): Promise<void>;
+}
+
+export interface GoogleProvider {
+  isConfigured(): boolean;
+  begin(next: string): { flow: GoogleFlow; url: string };
+  /** Swaps Google's one-time code for an ID token. */
+  exchangeCode(code: string, codeVerifier: string): Promise<string>;
 }

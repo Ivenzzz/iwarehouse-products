@@ -1,44 +1,43 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const MOCK_ERP = "http://127.0.0.1:4010";
-const PASSWORD = "correct-horse-battery";
 const PRODUCT = "/products/17-apple-iphone-17-pro";
 const LIVE = process.env.CUSTOMER_REVIEWS_LIVE === "true";
+const REVIEW_TEXT = "Bought this for my mother and she loves the camera.";
+
+const FACEBOOK_ANDROID =
+  "Mozilla/5.0 (Linux; Android 14; SM-A546E; wv) AppleWebKit/537.36 Chrome/128.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/482.0.0.40.81;]";
+const MESSENGER_IPHONE =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 LightSpeed [FBAN/MessengerLiteForiOS;FBAV/470.0;]";
 
 function uniqueEmail() {
   return `shopper-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
 }
 
-async function signUp(page: Page, email = uniqueEmail()) {
-  await page.goto("/account/register");
-  await page.getByLabel("First name").fill("Juan");
-  await page.getByLabel("Last name").fill("dela Cruz");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(PASSWORD);
+/** Clicks through to the fake Google and approves, as the real customer would. */
+async function continueWithGoogle(
+  page: Page,
+  email: string,
+  { lastName, unverified = false }: { lastName?: string; unverified?: boolean } = {},
+) {
+  await page.getByRole("link", { name: "Continue with Google" }).click();
+  await page.getByLabel("Google email").fill(email);
+  if (lastName !== undefined) await page.getByLabel("Google last name").fill(lastName);
+  if (unverified) await page.getByLabel("Email not verified").check();
+  await page.getByRole("button", { name: "Approve" }).click();
+}
+
+async function createAccount(page: Page, email = uniqueEmail(), next?: string) {
+  await page.goto(next ? `/account/login?next=${encodeURIComponent(next)}` : "/account/login");
+  await continueWithGoogle(page, email);
+  await expect(page).toHaveURL(/\/account\/welcome$/);
   await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByRole("status")).toContainText("Check your email");
+  await page.getByRole("button", { name: "Create my account" }).click();
   return email;
 }
 
-async function confirmEmail(page: Page, email: string) {
-  const { id } = await (await page.request.get(`${MOCK_ERP}/__test/account?email=${encodeURIComponent(email)}`)).json();
-  await page.goto(`/account/verify?id=${id}&expires=9999999999&signature=valid-signature`);
-  await page.getByRole("button", { name: "Confirm my email" }).click();
-  await expect(page.getByRole("status")).toContainText("Your email is confirmed");
-}
-
-async function signIn(page: Page, email: string, next?: string) {
-  await page.goto(next ? `/account/login?next=${encodeURIComponent(next)}` : "/account/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(PASSWORD);
-  await page.getByRole("button", { name: "Sign in" }).click();
-}
-
-async function verifiedShopper(page: Page) {
-  const email = await signUp(page);
-  await confirmEmail(page, email);
-  await signIn(page, email);
+async function signedInShopper(page: Page) {
+  const email = await createAccount(page);
   await expect(page.getByRole("heading", { name: "Hi, Juan" })).toBeVisible();
   return email;
 }
@@ -49,16 +48,15 @@ async function writeReview(page: Page, body: string) {
   await page.getByRole("button", { name: "Submit review" }).click();
 }
 
-const REVIEW_TEXT = "Bought this for my mother and she loves the camera.";
+test("a new customer signs up with Google, reviews a product, and sees it wait for approval", async ({ page }) => {
+  await createAccount(page, uniqueEmail(), PRODUCT);
 
-test("a shopper signs up, confirms their email, reviews a product, and sees it wait for approval", async ({ page }) => {
-  await verifiedShopper(page);
+  await expect(page).toHaveURL(new RegExp(`${PRODUCT}$`));
+  const reviews = page.locator("#reviews");
+  await expect(reviews.getByText("It will appear as Juan D.")).toBeVisible();
 
-  await page.goto(PRODUCT);
-  await expect(page.getByText("It will appear as Juan D.")).toBeVisible();
   await writeReview(page, REVIEW_TEXT);
 
-  const reviews = page.locator("#reviews");
   await expect(reviews.getByText("Waiting for approval")).toBeVisible();
   await expect(reviews.getByText(REVIEW_TEXT)).toBeVisible();
   await expect(reviews.getByRole("button", { name: "Submit review" })).toHaveCount(0);
@@ -68,8 +66,164 @@ test("a shopper signs up, confirms their email, reviews a product, and sees it w
   await expect(page.getByText("Waiting for approval")).toBeVisible();
 });
 
+test("a returning customer skips the confirm screen and keeps the name they chose", async ({ page }) => {
+  const email = uniqueEmail();
+  await page.goto("/account/login");
+  await continueWithGoogle(page, email);
+
+  const firstName = page.getByLabel("First name");
+  await expect(firstName).toHaveValue("Juan");
+  await expect(page.getByLabel("Last name")).toHaveValue("dela Cruz");
+  await expect(page.getByText(email)).toBeVisible();
+
+  await firstName.fill("Johnny");
+  await page.getByLabel("Last name").fill("Reyes");
+  await expect(page.getByText("Your name on reviews").locator("strong")).toHaveText("Johnny R.");
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create my account" }).click();
+  await expect(page.getByRole("heading", { name: "Hi, Johnny" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/127\.0\.0\.1:3100\/$/);
+
+  await page.goto("/account/login");
+  await continueWithGoogle(page, email);
+
+  await expect(page).toHaveURL(/\/account$/);
+  await expect(page.getByRole("heading", { name: "Hi, Johnny" })).toBeVisible();
+  await expect(page.getByText("Johnny R.")).toBeVisible();
+});
+
+test("nothing is saved until the customer agrees to the privacy notice", async ({ page }) => {
+  const email = uniqueEmail();
+  await page.goto("/account/login");
+  await continueWithGoogle(page, email);
+
+  // Past the browser's own check, to prove the server checks too.
+  await page.locator("form").first().evaluate((form) => form.setAttribute("novalidate", ""));
+  await page.getByRole("button", { name: "Create my account" }).click();
+  await expect(page.getByText("Please agree to the privacy notice to continue.")).toBeVisible();
+
+  // Abandoning here leaves no account: Google sign-in still treats them as new.
+  await page.context().clearCookies();
+  await page.goto("/account/login");
+  await continueWithGoogle(page, email);
+  await expect(page).toHaveURL(/\/account\/welcome$/);
+});
+
+test("a customer with no last name appears by first name only", async ({ page }) => {
+  await page.goto("/account/login");
+  await continueWithGoogle(page, uniqueEmail(), { lastName: "" });
+
+  await expect(page.getByText("Your name on reviews").locator("strong")).toHaveText("Juan");
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create my account" }).click();
+
+  await expect(page.getByRole("heading", { name: "Hi, Juan" })).toBeVisible();
+});
+
+test("cancelling at Google returns to sign-in with a gentle message and the same destination", async ({ page }) => {
+  await page.goto(`/account/login?next=${encodeURIComponent(PRODUCT)}`);
+  await page.getByRole("link", { name: "Continue with Google" }).click();
+  await page.getByRole("link", { name: "Cancel" }).click();
+
+  await expect(page.locator("main").getByRole("alert")).toContainText("Google sign-in was cancelled");
+  await expect(page).toHaveURL(/next=%2Fproducts%2F17-apple-iphone-17-pro/);
+});
+
+test("a Google email that isn't verified is refused", async ({ page }) => {
+  await page.goto("/account/login");
+  await continueWithGoogle(page, uniqueEmail(), { unverified: true });
+
+  await expect(page.locator("main").getByRole("alert")).toContainText("verify the email address on your Google account");
+  await expect(page).toHaveURL(/\/account\/login/);
+});
+
+test("a crafted callback can't sign anyone in", async ({ page }) => {
+  await page.goto("/account/google/callback?code=stolen-code&state=forged");
+  await expect(page.locator("main").getByRole("alert")).toContainText("couldn’t finish signing you in");
+
+  // Even during a real attempt, a state that doesn't match is refused.
+  await page.goto("/account/login");
+  await page.getByRole("link", { name: "Continue with Google" }).click();
+  await expect(page.getByLabel("Google email")).toBeVisible();
+  await page.goto("/account/google/callback?code=stolen-code&state=forged");
+  await expect(page.locator("main").getByRole("alert")).toContainText("couldn’t finish signing you in");
+
+  await page.goto("/account");
+  await expect(page).toHaveURL(/\/account\/login$/);
+});
+
+test("the welcome screen needs a sign-in in progress", async ({ page }) => {
+  await page.goto("/account/welcome");
+
+  await expect(page).toHaveURL(/\/account\/login\?error=expired$/);
+  await expect(page.locator("main").getByRole("alert")).toContainText("continue with Google again");
+});
+
+test("signing in never returns a customer to another site", async ({ page }) => {
+  await createAccount(page, uniqueEmail(), "https://evil.example/phish");
+  await expect(page).toHaveURL(/127\.0\.0\.1:3100\/account$/);
+
+  await page.context().clearCookies();
+  await page.goto("/account/google/start?next=//evil.example/phish");
+  await page.getByLabel("Google email").fill(uniqueEmail());
+  await page.getByRole("button", { name: "Approve" }).click();
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create my account" }).click();
+  await expect(page).toHaveURL(/127\.0\.0\.1:3100\/account$/);
+});
+
+test("sign-in secrets stay out of the browser", async ({ page }) => {
+  await page.goto("/account/login");
+  expect(await page.content()).not.toContain("e2e-google-secret");
+
+  await continueWithGoogle(page, uniqueEmail());
+  await expect(page).toHaveURL(/\/account\/welcome$/);
+
+  const pending = (await page.context().cookies()).find((cookie) => cookie.name === "iw_google_pending");
+  expect(pending).toMatchObject({ httpOnly: true, sameSite: "Lax" });
+  const pageText = await page.content();
+  expect(pageText).not.toContain(pending?.value ?? "missing");
+  expect(pageText).not.toContain("mock.");
+  expect(pageText).not.toContain("e2e-google-secret");
+
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create my account" }).click();
+  await expect(page.getByRole("heading", { name: "Hi, Juan" })).toBeVisible();
+
+  const cookies = await page.context().cookies();
+  expect(cookies.find((cookie) => cookie.name === "iw_google_pending")).toBeUndefined();
+  expect(cookies.find((cookie) => cookie.name === "iw_google_flow")).toBeUndefined();
+  expect(cookies.find((cookie) => cookie.name === "iw_customer_session")).toMatchObject({
+    httpOnly: true,
+    sameSite: "Lax",
+  });
+  expect(await page.evaluate(() => document.cookie)).not.toContain("iw_");
+});
+
+test.describe("inside an app's built-in browser", () => {
+  for (const [app, userAgent] of [
+    ["Facebook", FACEBOOK_ANDROID],
+    ["Messenger", MESSENGER_IPHONE],
+  ]) {
+    test(`${app} shows steps and a copy link instead of the Google button`, async ({ browser }) => {
+      const context = await browser.newContext({ userAgent });
+      const page = await context.newPage();
+
+      await page.goto(`/account/login?next=${encodeURIComponent(PRODUCT)}`);
+
+      await expect(page.getByRole("note")).toContainText("doesn’t work inside this app’s browser");
+      await expect(page.getByRole("button", { name: "Copy link" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Continue with Google" })).toHaveCount(0);
+
+      await context.close();
+    });
+  }
+});
+
 test("a rejected review shows its reason and can be edited and resent", async ({ page }) => {
-  const email = await verifiedShopper(page);
+  const email = await signedInShopper(page);
   await page.goto(PRODUCT);
   await writeReview(page, REVIEW_TEXT);
   await expect(page.locator("#reviews").getByText("Waiting for approval")).toBeVisible();
@@ -91,7 +245,7 @@ test("a rejected review shows its reason and can be edited and resent", async ({
 });
 
 test("a shopper deletes their review", async ({ page }) => {
-  await verifiedShopper(page);
+  await signedInShopper(page);
   await page.goto(PRODUCT);
   await writeReview(page, REVIEW_TEXT);
   await expect(page.locator("#reviews").getByText("Waiting for approval")).toBeVisible();
@@ -105,19 +259,8 @@ test("a shopper deletes their review", async ({ page }) => {
   await expect(page.getByText("You haven’t written any reviews yet.")).toBeVisible();
 });
 
-test("an unconfirmed shopper is asked to confirm before reviewing", async ({ page }) => {
-  const email = await signUp(page);
-  await signIn(page, email);
-
-  await expect(page.getByRole("heading", { name: "Confirm your email to write reviews" })).toBeVisible();
-
-  await page.goto(PRODUCT);
-  await expect(page.getByText("Please confirm your email address before writing a review.")).toBeVisible();
-  await expect(page.getByLabel("Your review")).toHaveCount(0);
-});
-
 test("the review form explains problems without losing the customer's place", async ({ page }) => {
-  await verifiedShopper(page);
+  await signedInShopper(page);
   await page.goto(PRODUCT);
 
   // Past the browser's own checks, to prove the server checks too.
@@ -129,42 +272,11 @@ test("the review form explains problems without losing the customer's place", as
   await expect(page.getByText("Please write at least 20 characters.")).toBeVisible();
 });
 
-test("a wrong password gets a generic error", async ({ page }) => {
-  const email = await signUp(page);
-
-  await page.goto("/account/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("not-the-password");
-  await page.getByRole("button", { name: "Sign in" }).click();
-
-  await expect(page.getByText("Incorrect email or password.")).toBeVisible();
-  await expect(page).toHaveURL(/\/account\/login/);
-});
-
-test("signing in returns a shopper to the page they came from, but never another site", async ({ page }) => {
-  const email = await signUp(page);
-
-  await signIn(page, email, PRODUCT);
-  await expect(page).toHaveURL(new RegExp(`${PRODUCT}$`));
-
-  await page.context().clearCookies();
-  await signIn(page, email, "https://evil.example/phish");
-  await expect(page).toHaveURL(/127\.0\.0\.1:3100\/account$/);
-});
-
-test("the session cookie can't be read by page scripts", async ({ page }) => {
-  await verifiedShopper(page);
-
-  const session = (await page.context().cookies()).find((cookie) => cookie.name === "iw_customer_session");
-  expect(session).toMatchObject({ httpOnly: true, sameSite: "Lax" });
-  expect(await page.evaluate(() => document.cookie)).not.toContain("iw_customer_session");
-});
-
 test("the account page needs a session, and signing out ends it", async ({ page }) => {
   await page.goto("/account");
   await expect(page).toHaveURL(/\/account\/login$/);
 
-  await verifiedShopper(page);
+  await signedInShopper(page);
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/127\.0\.0\.1:3100\/$/);
 
@@ -172,45 +284,20 @@ test("the account page needs a session, and signing out ends it", async ({ page 
   await expect(page).toHaveURL(/\/account\/login$/);
 });
 
-test("deleting an account needs the password, then removes it", async ({ page }) => {
-  const email = await verifiedShopper(page);
+test("deleting an account needs the email typed, then removes it", async ({ page }) => {
+  const email = await signedInShopper(page);
 
-  await page.getByLabel("Confirm your password").fill("not-the-password");
+  await page.getByLabel(`Type ${email} to confirm`).fill("someone.else@example.com");
   await page.getByRole("button", { name: "Delete my account and reviews" }).click();
-  await expect(page.getByText("That password is incorrect.")).toBeVisible();
+  await expect(page.getByText("That doesn't match your account email.")).toBeVisible();
 
-  await page.getByLabel("Confirm your password").fill(PASSWORD);
+  await page.getByLabel(`Type ${email} to confirm`).fill(email.toUpperCase());
   await page.getByRole("button", { name: "Delete my account and reviews" }).click();
   await expect(page.getByText("Your account and reviews have been deleted.")).toBeVisible();
 
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(PASSWORD);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByText("Incorrect email or password.")).toBeVisible();
-});
-
-test("a reset link changes the password; a bad one explains itself", async ({ page }) => {
-  const email = await signUp(page);
-
-  await page.goto(`/account/reset-password?email=${encodeURIComponent(email)}&token=wrong`);
-  await page.getByLabel("New password").fill("a-brand-new-password");
-  await page.getByRole("button", { name: "Save new password" }).click();
-  await expect(page.getByText("This reset link is invalid or has expired.")).toBeVisible();
-
-  await page.goto(`/account/reset-password?email=${encodeURIComponent(email)}&token=valid-reset-token`);
-  await page.getByLabel("New password").fill("a-brand-new-password");
-  await page.getByRole("button", { name: "Save new password" }).click();
-  await expect(page.getByText("Your password has been changed.")).toBeVisible();
-});
-
-test("a confirmation link with a bad signature is refused", async ({ page }) => {
-  const email = await signUp(page);
-  const { id } = await (await page.request.get(`${MOCK_ERP}/__test/account?email=${encodeURIComponent(email)}`)).json();
-
-  await page.goto(`/account/verify?id=${id}&expires=9999999999&signature=tampered`);
-  await page.getByRole("button", { name: "Confirm my email" }).click();
-
-  await expect(page.getByText("This verification link is invalid or has expired.")).toBeVisible();
+  // The same Google account now counts as new again.
+  await continueWithGoogle(page, email);
+  await expect(page).toHaveURL(/\/account\/welcome$/);
 });
 
 test("account pages are kept out of search engines", async ({ page, request }) => {
@@ -225,11 +312,9 @@ test("account pages are kept out of search engines", async ({ page, request }) =
 });
 
 test.describe("published reviews", () => {
-  test.skip(({ browserName }) => browserName !== "chromium");
-
   async function readReviewsAsVisitor(page: Page) {
     // Before launch only signed-in visitors see reviews; after it, everyone does.
-    if (!LIVE) await verifiedShopper(page);
+    if (!LIVE) await signedInShopper(page);
     await page.goto(PRODUCT);
   }
 
@@ -264,7 +349,7 @@ test.describe("published reviews", () => {
 
 test("a reviews outage leaves the product page working", async ({ page }) => {
   // The mock serves this product normally but fails its reviews.
-  if (!LIVE) await verifiedShopper(page);
+  if (!LIVE) await signedInShopper(page);
 
   await page.goto("/products/101-newest-phone");
 
@@ -288,7 +373,7 @@ test.describe("before launch", () => {
   });
 
   test("signed-in staff can test reviews, and draft policies are labelled and unindexed", async ({ page }) => {
-    await verifiedShopper(page);
+    await signedInShopper(page);
     await page.goto(PRODUCT);
     await expect(page.getByRole("heading", { name: "Customer reviews" })).toBeVisible();
 

@@ -19,43 +19,22 @@ function settle(
 ): FormState {
   if (submission.status === "signed-out") redirect(onSignedOut);
   if (submission.status === "done") {
-    if (next) redirect(next);
+    const destination = submission.next ?? next;
+    if (destination) redirect(destination);
     return { status: "idle" };
   }
   return submission;
 }
 
-export async function registerAction(_: FormState, formData: FormData): Promise<FormState> {
-  return workflows.register(fieldsOf(formData));
-}
-
-export async function loginAction(_: FormState, formData: FormData): Promise<FormState> {
-  return settle(await workflows.login(fieldsOf(formData)), {
-    next: safeRedirectPath(formData.get("next")),
+export async function confirmGoogleAccountAction(_: FormState, formData: FormData): Promise<FormState> {
+  return settle(await workflows.confirmGoogleAccount(fieldsOf(formData)), {
+    onSignedOut: `${LOGIN_PATH}?error=expired`,
   });
 }
 
 export async function logoutAction(): Promise<void> {
   await workflows.logout();
   redirect("/");
-}
-
-export async function forgotPasswordAction(_: FormState, formData: FormData): Promise<FormState> {
-  return workflows.forgotPassword(fieldsOf(formData));
-}
-
-export async function resetPasswordAction(_: FormState, formData: FormData): Promise<FormState> {
-  return settle(await workflows.resetPassword(fieldsOf(formData)), {
-    next: `${LOGIN_PATH}?reset=1`,
-  });
-}
-
-export async function verifyEmailAction(_: FormState, formData: FormData): Promise<FormState> {
-  return workflows.verifyEmail(fieldsOf(formData));
-}
-
-export async function resendVerificationAction(): Promise<FormState> {
-  return settle(await workflows.resendVerification());
 }
 
 export async function deleteAccountAction(_: FormState, formData: FormData): Promise<FormState> {

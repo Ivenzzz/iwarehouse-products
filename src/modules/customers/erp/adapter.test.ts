@@ -23,7 +23,6 @@ const accountDto = {
   last_name: "dela Cruz",
   public_name: "Juan D.",
   email: "juan@example.com",
-  email_verified: true,
 };
 
 describe("ERP customer source", () => {
@@ -33,7 +32,6 @@ describe("ERP customer source", () => {
     await expect(source.getAccount("customer-token")).resolves.toMatchObject({
       firstName: "Juan",
       publicName: "Juan D.",
-      emailVerified: true,
     });
 
     const [url, init] = fetcher.mock.calls[0];
@@ -46,6 +44,72 @@ describe("ERP customer source", () => {
         "X-Storefront-Client-Ip": "203.0.113.5",
         Authorization: "Bearer customer-token",
       },
+    });
+  });
+
+  it("signs a known customer in", async () => {
+    const { source, fetcher } = sourceWith(
+      json(200, {
+        status: "signed_in",
+        token: "session-token",
+        expires_at: "2026-12-06T00:00:00+00:00",
+        account: accountDto,
+      }),
+    );
+
+    await expect(source.signInWithGoogle("id-token", "nonce")).resolves.toEqual({
+      status: "signed-in",
+      session: {
+        token: "session-token",
+        expiresAt: "2026-12-06T00:00:00+00:00",
+        account: expect.objectContaining({ publicName: "Juan D." }),
+      },
+    });
+
+    const [url, init] = fetcher.mock.calls[0];
+    expect(url).toBe("https://erp.test/api/v1/storefront/auth/google");
+    expect(JSON.parse(String(init?.body))).toEqual({ id_token: "id-token", nonce: "nonce" });
+  });
+
+  it("recognises a new customer who still needs to confirm", async () => {
+    const { source } = sourceWith(
+      json(200, {
+        status: "needs_confirmation",
+        first_name: "Juan",
+        last_name: "",
+        email: "juan@example.com",
+      }),
+    );
+
+    await expect(source.signInWithGoogle("id-token", "nonce")).resolves.toEqual({
+      status: "needs-confirmation",
+      firstName: "Juan",
+      lastName: "",
+      email: "juan@example.com",
+    });
+  });
+
+  it("sends the agreement and the chosen name, but never an email, when registering", async () => {
+    const { source, fetcher } = sourceWith(
+      json(200, { status: "signed_in", token: "t", expires_at: null, account: accountDto }),
+    );
+
+    await source.registerWithGoogle({
+      idToken: "id-token",
+      nonce: "nonce",
+      firstName: "Johnny",
+      lastName: "Cruz",
+    });
+
+    const [url, init] = fetcher.mock.calls[0];
+    expect(url).toBe("https://erp.test/api/v1/storefront/auth/google/register");
+    expect(JSON.parse(String(init?.body))).toEqual({
+      id_token: "id-token",
+      nonce: "nonce",
+      first_name: "Johnny",
+      last_name: "Cruz",
+      privacy_accepted: true,
+      privacy_notice_version: "2026-11",
     });
   });
 
@@ -81,7 +145,7 @@ describe("ERP customer source", () => {
     );
 
     await expect(
-      source.register({ firstName: "", lastName: "D", email: "a@b.co", password: "x" }),
+      source.registerWithGoogle({ idToken: "t", nonce: "n", firstName: "", lastName: "" }),
     ).rejects.toMatchObject({
       kind: "validation",
       message: "Enter your first name.",
@@ -92,9 +156,11 @@ describe("ERP customer source", () => {
   it.each([
     [401, { message: "Unauthenticated." }, "unauthenticated"],
     [401, { message: "Invalid storefront API token." }, "unavailable"],
-    [403, { code: "email_unverified" }, "email-unverified"],
     [404, {}, "not-found"],
-    [409, { code: "already_reviewed" }, "already-reviewed"],
+    [409, { code: "already_reviewed", message: "Already reviewed" }, "conflict"],
+    [409, { code: "email_in_use", message: "Email in use" }, "conflict"],
+    [422, { code: "google_token_invalid", message: "Bad token" }, "google-token-invalid"],
+    [422, { code: "google_email_unverified", message: "Unverified" }, "google-email-unverified"],
     [429, {}, "rate-limited"],
     [500, {}, "unavailable"],
   ])("treats a %i with %j as %s", async (status, body, kind) => {

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import http from "node:http";
 
 const location = {
@@ -191,12 +192,13 @@ const filters = {
 };
 
 /*
- * Accounts and reviews, kept in memory. Every test signs up with its own email,
+ * Accounts and reviews, kept in memory. Every test signs in with its own email,
  * so parallel tests don't see each other's accounts.
  */
 const accounts = new Map();
 const sessions = new Map();
 const ownReviews = new Map();
+const googleCodes = new Map();
 let nextId = 1000;
 
 // Fixed data, since real approvals are covered by the ERP's own tests. The script
@@ -210,20 +212,22 @@ const publicReviews = {
   ],
 };
 
-function readBody(request) {
+function readRawBody(request) {
   return new Promise((resolve) => {
     let raw = "";
     request.on("data", (chunk) => {
       raw += chunk;
     });
-    request.on("end", () => {
-      try {
-        resolve(raw ? JSON.parse(raw) : {});
-      } catch {
-        resolve({});
-      }
-    });
+    request.on("end", () => resolve(raw));
   });
+}
+
+async function readBody(request) {
+  try {
+    return JSON.parse((await readRawBody(request)) || "{}");
+  } catch {
+    return {};
+  }
 }
 
 function send(response, status, body) {
@@ -231,14 +235,18 @@ function send(response, status, body) {
   response.end(body === undefined ? undefined : JSON.stringify(body));
 }
 
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"]/g, (character) => `&#${character.charCodeAt(0)};`);
+}
+
 function accountDto(account) {
+  const initial = account.lastName.charAt(0).toUpperCase();
   return {
     id: account.id,
     first_name: account.firstName,
     last_name: account.lastName,
-    public_name: `${account.firstName} ${account.lastName[0].toUpperCase()}.`,
+    public_name: `${account.firstName}${initial ? ` ${initial}.` : ""}`,
     email: account.email,
-    email_verified: account.emailVerified,
   };
 }
 
@@ -256,6 +264,37 @@ function reviewDto(review) {
 
 function validationError(response, field, message) {
   send(response, 422, { message, errors: { [field]: [message] } });
+}
+
+function signedIn(response, account) {
+  const token = `session-${nextId++}`;
+  sessions.set(token, account);
+  send(response, 200, {
+    status: "signed_in",
+    token,
+    expires_at: "2099-01-01T00:00:00+00:00",
+    account: accountDto(account),
+  });
+}
+
+/** The ERP's checks on a Google token, in miniature. */
+function verifiedIdentity(response, body) {
+  let identity = null;
+  try {
+    identity = JSON.parse(Buffer.from(String(body.id_token).replace("mock.", ""), "base64url").toString());
+  } catch {
+    // Falls through to the refusal below.
+  }
+
+  if (!identity || identity.nonce !== body.nonce) {
+    send(response, 422, { message: "We couldn't verify your Google sign-in. Please try again.", code: "google_token_invalid" });
+    return null;
+  }
+  if (!identity.email_verified) {
+    send(response, 422, { message: "Please verify the email address on your Google account, then try again.", code: "google_email_unverified" });
+    return null;
+  }
+  return identity;
 }
 
 async function handleStorefront(request, response, url) {
@@ -283,50 +322,37 @@ async function handleStorefront(request, response, url) {
     });
   }
 
-  if (route === "POST /auth/register") {
-    if (!accounts.has(body.email)) {
-      accounts.set(body.email, {
-        id: nextId++,
-        firstName: body.first_name,
-        lastName: body.last_name,
-        email: body.email,
-        password: body.password,
-        emailVerified: false,
-      });
-    }
-    return send(response, 202, { status: "check_email" });
-  }
-  if (route === "POST /auth/login") {
-    const account = accounts.get(body.email);
-    if (!account || account.password !== body.password) {
-      return validationError(response, "email", "Incorrect email or password.");
-    }
-    const token = `session-${nextId++}`;
-    sessions.set(token, account);
+  if (route === "POST /auth/google") {
+    const identity = verifiedIdentity(response, body);
+    if (!identity) return undefined;
+
+    const known = accounts.get(identity.sub);
+    if (known) return signedIn(response, known);
+
     return send(response, 200, {
-      token,
-      expires_at: "2099-01-01T00:00:00+00:00",
-      account: accountDto(account),
+      status: "needs_confirmation",
+      first_name: identity.given_name,
+      last_name: identity.family_name,
+      email: identity.email,
     });
   }
-  if (route === "POST /auth/forgot-password") {
-    return send(response, 202, { status: "check_email" });
-  }
-  if (route === "POST /auth/reset-password") {
-    const account = accounts.get(body.email);
-    if (!account || body.token !== "valid-reset-token") {
-      return validationError(response, "token", "This reset link is invalid or has expired.");
+  if (route === "POST /auth/google/register") {
+    const identity = verifiedIdentity(response, body);
+    if (!identity) return undefined;
+
+    if (body.privacy_accepted !== true) {
+      return validationError(response, "privacy_accepted", "Please agree to the privacy notice.");
     }
-    account.password = body.password;
-    return send(response, 200, { status: "password_reset" });
-  }
-  if (route === "POST /auth/verify-email") {
-    const account = [...accounts.values()].find((item) => String(item.id) === String(body.id));
-    if (!account || body.signature !== "valid-signature") {
-      return validationError(response, "signature", "This verification link is invalid or has expired.");
+    if (!accounts.has(identity.sub)) {
+      accounts.set(identity.sub, {
+        id: nextId++,
+        googleId: identity.sub,
+        firstName: body.first_name,
+        lastName: body.last_name ?? "",
+        email: identity.email,
+      });
     }
-    account.emailVerified = true;
-    return send(response, 200, { status: "email_verified" });
+    return signedIn(response, accounts.get(identity.sub));
   }
 
   const account = sessions.get((request.headers.authorization ?? "").replace("Bearer ", ""));
@@ -341,14 +367,13 @@ async function handleStorefront(request, response, url) {
     sessions.delete((request.headers.authorization ?? "").replace("Bearer ", ""));
     return send(response, 204);
   }
-  if (route === "POST /auth/resend-verification") return send(response, 202, { status: "check_email" });
   if (route === "GET /me") return send(response, 200, { data: accountDto(account) });
   if (route === "DELETE /me") {
-    if (body.password !== account.password) {
-      return validationError(response, "password", "That password is incorrect.");
+    if (String(body.email ?? "").trim().toLowerCase() !== account.email.toLowerCase()) {
+      return validationError(response, "email", "That doesn't match your account email.");
     }
     mine().forEach((item) => ownReviews.delete(item.id));
-    accounts.delete(account.email);
+    accounts.delete(account.googleId);
     return send(response, 204);
   }
   if (route === "GET /me/reviews") return send(response, 200, { data: mine().map(reviewDto) });
@@ -363,10 +388,6 @@ async function handleStorefront(request, response, url) {
     if (!review) return send(response, 404, { message: "Not found." });
     ownReviews.delete(review.id);
     return send(response, 204);
-  }
-
-  if (!account.emailVerified) {
-    return send(response, 403, { message: "Please verify your email address first.", code: "email_unverified" });
   }
   if (request.method === "POST" && productId) {
     const created = {
@@ -390,14 +411,84 @@ async function handleStorefront(request, response, url) {
   return send(response, 404, { message: "Not found." });
 }
 
-/** Test-only stand-ins for things staff do in the ERP or customers do from emails. */
-function handleTestControl(request, response, url) {
-  const account = accounts.get(url.searchParams.get("email"));
-  if (url.pathname === "/__test/account") {
-    return account
-      ? send(response, 200, { id: account.id })
-      : send(response, 404, { message: "Not found." });
+/**
+ * A fake Google. Like the real one, it insists on the registered client and secret,
+ * and each code works once and only with the PKCE verifier and redirect it was
+ * issued for, so these tests prove the site really does all of that.
+ */
+async function handleFakeGoogle(request, response, url) {
+  const params = url.searchParams;
+
+  if (url.pathname === "/__google/authorize") {
+    if (params.get("client_id") !== "e2e-google-client" || params.get("code_challenge_method") !== "S256") {
+      return send(response, 400, { error: "invalid_request" });
+    }
+
+    const carried = ["redirect_uri", "state", "nonce", "code_challenge", "prompt", "scope"]
+      .map((name) => `<input type="hidden" name="${name}" value="${escapeHtml(params.get(name))}">`)
+      .join("");
+    const cancel = new URL(params.get("redirect_uri"));
+    cancel.searchParams.set("error", "access_denied");
+    cancel.searchParams.set("state", params.get("state"));
+
+    response.setHeader("Content-Type", "text/html");
+    return response.end(`<!doctype html><title>Fake Google</title><form action="/__google/approve">${carried}
+      <label>Google email <input name="email"></label>
+      <label>Google first name <input name="given_name" value="Juan"></label>
+      <label>Google last name <input name="family_name" value="dela Cruz"></label>
+      <label><input type="checkbox" name="unverified"> Email not verified</label>
+      <button>Approve</button></form><a href="${escapeHtml(cancel)}">Cancel</a>`);
   }
+
+  if (url.pathname === "/__google/approve") {
+    const code = `google-code-${nextId++}`;
+    googleCodes.set(code, {
+      challenge: params.get("code_challenge"),
+      redirectUri: params.get("redirect_uri"),
+      identity: {
+        sub: `google-${params.get("email")}`,
+        email: params.get("email"),
+        email_verified: !params.has("unverified"),
+        given_name: params.get("given_name"),
+        family_name: params.get("family_name"),
+        nonce: params.get("nonce"),
+      },
+    });
+
+    const back = new URL(params.get("redirect_uri"));
+    back.searchParams.set("code", code);
+    back.searchParams.set("state", params.get("state"));
+    response.statusCode = 302;
+    response.setHeader("Location", back.toString());
+    return response.end();
+  }
+
+  if (url.pathname === "/__google/token" && request.method === "POST") {
+    const form = new URLSearchParams(await readRawBody(request));
+    const issued = googleCodes.get(form.get("code"));
+    googleCodes.delete(form.get("code"));
+
+    const valid =
+      issued &&
+      form.get("client_id") === "e2e-google-client" &&
+      form.get("client_secret") === "e2e-google-secret" &&
+      form.get("grant_type") === "authorization_code" &&
+      form.get("redirect_uri") === issued.redirectUri &&
+      createHash("sha256").update(form.get("code_verifier") ?? "").digest("base64url") === issued.challenge;
+
+    if (!valid) return send(response, 400, { error: "invalid_grant" });
+
+    return send(response, 200, {
+      id_token: `mock.${Buffer.from(JSON.stringify(issued.identity)).toString("base64url")}`,
+    });
+  }
+
+  return send(response, 404, { message: "Not found." });
+}
+
+/** Test-only stand-ins for things staff do in the ERP. */
+function handleTestControl(request, response, url) {
+  const account = accounts.get(`google-${url.searchParams.get("email")}`);
   if (url.pathname === "/__test/reject") {
     const review = account && [...ownReviews.values()].find((item) => item.accountId === account.id);
     if (!review) return send(response, 404, { message: "Not found." });
@@ -418,6 +509,10 @@ const server = http.createServer(async (request, response) => {
   response.setHeader("Content-Type", "application/json");
 
   const url = new URL(request.url ?? "/", "http://127.0.0.1:4010");
+  if (url.pathname.startsWith("/__google/")) {
+    await handleFakeGoogle(request, response, url);
+    return;
+  }
   if (url.pathname.startsWith("/__test/")) {
     handleTestControl(request, response, url);
     return;

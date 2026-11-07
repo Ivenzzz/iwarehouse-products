@@ -35,18 +35,19 @@ export function PrivacyNoticeView({ live }: { live: boolean }) {
 
           <h2>What we collect</h2>
           <ul>
-            <li>Your first name, last name and email address.</li>
-            <li>Your password, stored only in a scrambled form that we can’t read.</li>
+            <li>
+              From your Google account: your name, email address and Google account ID. You can
+              change the name before your account is created. We don’t receive your Google password.
+            </li>
             <li>The reviews you write, with their star ratings and dates.</li>
             <li>When you agreed to this notice, and which version you agreed to.</li>
-            <li>Your internet address, used briefly to limit repeated sign-in and sign-up attempts.</li>
+            <li>Your internet address, used briefly to limit repeated sign-in attempts.</li>
           </ul>
 
           <h2>Why we use it</h2>
           <ul>
             <li>To run your account and keep you signed in.</li>
-            <li>To send you account emails, such as confirming your address or resetting your password.</li>
-            <li>To check reviews before they’re published, and tell you if one can’t be published.</li>
+            <li>To check reviews before they’re published, and email you if one can’t be published.</li>
             <li>To protect the website from abuse.</li>
           </ul>
           <p>We don’t use your account to send you marketing.</p>
@@ -64,14 +65,24 @@ export function PrivacyNoticeView({ live }: { live: boolean }) {
 
           <h2>Who else handles your data</h2>
           <p>
-            Your account is stored on our own servers. Emails are sent through{" "}
+            Google handles the sign-in itself, under{" "}
+            <a
+              href="https://policies.google.com/privacy"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-primary hover:underline"
+            >
+              its own privacy policy
+            </a>
+            , and sees that you signed in to this website. Your account is stored on our own
+            servers. Emails are sent through{" "}
             <ToConfirm>the email provider used by the ERP, and where it stores data</ToConfirm>.
           </p>
 
           <h2>Cookies</h2>
           <p>
-            We use one essential cookie to keep you signed in. It lasts up to 30 days and is deleted
-            when you sign out.
+            We use essential cookies only: one keeps you signed in for up to 30 days and is deleted
+            when you sign out, and short-lived ones protect sign-in and last 15 minutes at most.
           </p>
 
           <h2>How long we keep it</h2>

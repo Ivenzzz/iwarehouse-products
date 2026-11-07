@@ -65,15 +65,6 @@ function Composer({
           </Button>
         </div>
       );
-    case "unverified":
-      return (
-        <p className="m-0 text-sm text-muted-foreground">
-          Please confirm your email address before writing a review.{" "}
-          <Link href="/account" className="font-semibold text-primary hover:underline">
-            Go to my account
-          </Link>
-        </p>
-      );
     case "reviewed":
       return (
         <div className="grid gap-2">

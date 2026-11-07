@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  PASSWORD_MIN_LENGTH,
   REVIEW_MAX_LENGTH,
   REVIEW_MIN_LENGTH,
   type AccountPage,
@@ -9,54 +8,35 @@ import {
   type ProductReviewsSection,
   type ReviewComposer,
   type ReviewInput,
+  type SignInProblem,
   type Submission,
+  type WelcomePage,
 } from "./model";
+import { safeRedirectPath } from "./safe-redirect";
 import {
   CustomerSourceError,
   type CustomerSource,
+  type GoogleFlow,
+  type GoogleProvider,
+  type PendingGoogleAccount,
   type SessionStore,
-  type VerificationLink,
+  type VisitorStore,
 } from "./source";
 import { reviewStructuredData } from "./structured-data";
 
 type RawForm = Record<string, unknown>;
 
-const CHECK_YOUR_EMAIL =
-  "Almost there. Check your email for a link to confirm your account.";
+const LOGIN_PATH = "/account/login";
+const WELCOME_PATH = "/account/welcome";
 const UNAVAILABLE_MESSAGE =
   "We couldn’t complete that right now. Please try again in a moment.";
 
-const emailField = z.string().trim().toLowerCase().email("Enter a valid email address.").max(255);
-const passwordField = z
-  .string()
-  .min(PASSWORD_MIN_LENGTH, `Use at least ${PASSWORD_MIN_LENGTH} characters.`)
-  .max(255);
-
-const registrationSchema = z.object({
+const welcomeSchema = z.object({
   firstName: z.string().trim().min(1, "Enter your first name.").max(80),
-  lastName: z.string().trim().min(1, "Enter your last name.").max(80),
-  email: emailField,
-  password: passwordField,
+  lastName: z.string().trim().max(80),
   privacyAccepted: z.literal("on", {
     error: "Please agree to the privacy notice to continue.",
   }),
-});
-
-const loginSchema = z.object({
-  email: emailField,
-  password: z.string().min(1, "Enter your password.").max(255),
-});
-
-const resetSchema = z.object({
-  email: emailField,
-  token: z.string().min(1, "This reset link is invalid or has expired."),
-  password: passwordField,
-});
-
-const verificationSchema = z.object({
-  id: z.string().min(1),
-  expires: z.string().min(1),
-  signature: z.string().min(1),
 });
 
 const reviewSchema = z.object({
@@ -109,10 +89,34 @@ function pageNumber(raw: string | string[] | undefined): number {
   return Number.isInteger(page) && page > 0 ? page : 1;
 }
 
+function signInProblemPath(problem: SignInProblem, next: string | null): string {
+  const params = new URLSearchParams({ error: problem });
+  if (next) params.set("next", next);
+  return `${LOGIN_PATH}?${params}`;
+}
+
+function problemFrom(error: unknown): SignInProblem {
+  if (!(error instanceof CustomerSourceError)) throw error;
+
+  switch (error.kind) {
+    case "google-email-unverified":
+      return "unverified";
+    case "rate-limited":
+      return "busy";
+    case "unavailable":
+      return "unavailable";
+    default:
+      return "failed";
+  }
+}
+
 export function createCustomerWorkflows(
   source: CustomerSource,
   session: SessionStore,
   isLive: () => boolean,
+  google: GoogleProvider,
+  googleFlows: VisitorStore<GoogleFlow>,
+  pendingAccounts: VisitorStore<PendingGoogleAccount>,
 ) {
   /** Runs a signed-in form action; an expired session clears the stale cookie. */
   async function signedIn(
@@ -138,8 +142,6 @@ export function createCustomerWorkflows(
 
     try {
       const account = await source.getAccount(token);
-      if (!account.emailVerified) return { status: "unverified" };
-
       const review = await source.getOwnReviewForProduct(token, productId);
       return review
         ? { status: "reviewed", review }
@@ -150,6 +152,102 @@ export function createCustomerWorkflows(
   }
 
   return {
+    /** Remembers this attempt and returns the address to send the customer to. */
+    async startGoogleSignIn(rawNext: string | null): Promise<string> {
+      const next = safeRedirectPath(rawNext);
+      if (!google.isConfigured()) return signInProblemPath("unavailable", next);
+
+      const { flow, url } = google.begin(next);
+      await googleFlows.write(flow);
+      return url;
+    },
+
+    /**
+     * Handles Google sending the customer back, and returns where to go next.
+     * The state check is what stops a crafted link signing a visitor in to
+     * somebody else's Google account, so nothing happens without it.
+     */
+    async finishGoogleSignIn({
+      code,
+      state,
+      error,
+    }: {
+      code: string | null;
+      state: string | null;
+      error: string | null;
+    }): Promise<string> {
+      const flow = await googleFlows.read();
+      await googleFlows.clear();
+
+      if (!flow || !state || flow.state !== state) return signInProblemPath("failed", null);
+      if (error) return signInProblemPath("cancelled", flow.next);
+      if (!code) return signInProblemPath("failed", flow.next);
+
+      try {
+        const idToken = await google.exchangeCode(code, flow.codeVerifier);
+        const outcome = await source.signInWithGoogle(idToken, flow.nonce);
+
+        if (outcome.status === "signed-in") {
+          await session.write(outcome.session.token, outcome.session.expiresAt);
+          return flow.next;
+        }
+
+        await pendingAccounts.write({
+          idToken,
+          nonce: flow.nonce,
+          next: flow.next,
+          firstName: outcome.firstName,
+          lastName: outcome.lastName,
+          email: outcome.email,
+        });
+        return WELCOME_PATH;
+      } catch (caught) {
+        return signInProblemPath(problemFrom(caught), flow.next);
+      }
+    },
+
+    async loadWelcomePage(): Promise<WelcomePage> {
+      if (await session.read()) return { status: "signed-in" };
+
+      const pending = await pendingAccounts.read();
+      return pending
+        ? {
+            status: "ready",
+            firstName: pending.firstName,
+            lastName: pending.lastName,
+            email: pending.email,
+          }
+        : { status: "expired" };
+    },
+
+    /** The account only comes to exist here, once the customer has agreed. */
+    async confirmGoogleAccount(form: RawForm): Promise<Submission> {
+      const pending = await pendingAccounts.read();
+      if (!pending) return { status: "signed-out" };
+
+      const parsed = welcomeSchema.safeParse({ lastName: "", ...form });
+      if (!parsed.success) return invalidForm(parsed.error);
+
+      try {
+        const created = await source.registerWithGoogle({
+          idToken: pending.idToken,
+          nonce: pending.nonce,
+          firstName: parsed.data.firstName,
+          lastName: parsed.data.lastName,
+        });
+        await session.write(created.token, created.expiresAt);
+        await pendingAccounts.clear();
+        return { status: "done", next: pending.next };
+      } catch (error) {
+        // Google's token only lasts about an hour, so a form left open has to restart.
+        if (error instanceof CustomerSourceError && error.kind === "google-token-invalid") {
+          await pendingAccounts.clear();
+          return { status: "signed-out" };
+        }
+        return failedForm(error);
+      }
+    },
+
     /**
      * Everything the product page needs. It never throws for an ERP problem, so
      * a reviews outage can't take the product page down with it.
@@ -201,11 +299,7 @@ export function createCustomerWorkflows(
       if (!Number.isInteger(reviewId) || reviewId <= 0) return { status: "not-found" };
 
       try {
-        const [account, review] = await Promise.all([
-          source.getAccount(token),
-          source.getOwnReview(token, reviewId),
-        ]);
-        return { status: "ready", account, review };
+        return { status: "ready", review: await source.getOwnReview(token, reviewId) };
       } catch (error) {
         if (error instanceof CustomerSourceError && error.kind === "not-found") {
           return { status: "not-found" };
@@ -216,35 +310,6 @@ export function createCustomerWorkflows(
 
     async hasSession(): Promise<boolean> {
       return (await session.read()) !== null;
-    },
-
-    async register(form: RawForm): Promise<FormState> {
-      // A hidden field only bots fill in. They get the normal reply, so they
-      // can't tell they were caught, and no account is created.
-      if (form.company) return { status: "success", message: CHECK_YOUR_EMAIL };
-
-      const parsed = registrationSchema.safeParse(form);
-      if (!parsed.success) return invalidForm(parsed.error);
-
-      try {
-        await source.register(parsed.data);
-        return { status: "success", message: CHECK_YOUR_EMAIL };
-      } catch (error) {
-        return failedForm(error);
-      }
-    },
-
-    async login(form: RawForm): Promise<Submission> {
-      const parsed = loginSchema.safeParse(form);
-      if (!parsed.success) return invalidForm(parsed.error);
-
-      try {
-        const created = await source.login(parsed.data.email, parsed.data.password);
-        await session.write(created.token, created.expiresAt);
-        return { status: "done" };
-      } catch (error) {
-        return failedForm(error);
-      }
     },
 
     /** The cookie always goes, even if the ERP can't be told right now. */
@@ -259,63 +324,14 @@ export function createCustomerWorkflows(
       }
     },
 
-    async forgotPassword(form: RawForm): Promise<FormState> {
-      const parsed = z.object({ email: emailField }).safeParse(form);
-      if (!parsed.success) return invalidForm(parsed.error);
-
-      try {
-        await source.forgotPassword(parsed.data.email);
-        return {
-          status: "success",
-          message: "If that email has an account, we’ve sent a link to reset the password.",
-        };
-      } catch (error) {
-        return failedForm(error);
-      }
-    },
-
-    async resetPassword(form: RawForm): Promise<Submission> {
-      const parsed = resetSchema.safeParse(form);
-      if (!parsed.success) return invalidForm(parsed.error);
-
-      try {
-        await source.resetPassword(parsed.data);
-        await session.clear();
-        return { status: "done" };
-      } catch (error) {
-        return failedForm(error);
-      }
-    },
-
-    async verifyEmail(form: RawForm): Promise<FormState> {
-      const parsed = verificationSchema.safeParse(form);
-      if (!parsed.success) {
-        return { status: "error", message: "This confirmation link is invalid or has expired." };
-      }
-
-      try {
-        await source.verifyEmail(parsed.data satisfies VerificationLink);
-        return { status: "success", message: "Your email is confirmed. You can now write reviews." };
-      } catch (error) {
-        return failedForm(error);
-      }
-    },
-
-    resendVerification(): Promise<Submission> {
-      return signedIn(async (token) => {
-        await source.resendVerification(token);
-        return { status: "success", message: "We’ve sent you a new confirmation link." };
-      });
-    },
-
     deleteAccount(form: RawForm): Promise<Submission> {
       const parsed = z
-        .object({ password: z.string().min(1, "Enter your password to confirm.").max(255) })
+        .object({ email: z.string().trim().min(1, "Enter your email to confirm.").max(255) })
         .safeParse(form);
       if (!parsed.success) return Promise.resolve(invalidForm(parsed.error));
 
       return signedIn(async (token) => {
-        await source.deleteAccount(token, parsed.data.password);
+        await source.deleteAccount(token, parsed.data.email);
         await session.clear();
         return { status: "done" };
       });

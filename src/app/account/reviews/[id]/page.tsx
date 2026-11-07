@@ -20,6 +20,6 @@ export default async function OwnReviewPage({
     case "unavailable":
       return <AccountUnavailableView />;
     case "ready":
-      return <OwnReviewView review={page.review} emailVerified={page.account.emailVerified} />;
+      return <OwnReviewView review={page.review} />;
   }
 }

@@ -72,7 +72,19 @@ and the visitor's address in `X-Storefront-Client-Ip` for per-person rate limits
 - The root layout must not read cookies. That would render every page per visitor.
 - `CUSTOMER_REVIEWS_LIVE` gates what shoppers see. See `src/modules/customers/release.ts`.
 
-Tests compose workflows with an in-memory `CustomerSource` and `SessionStore`.
+Customers sign in only with Google, and there are no passwords:
+
+1. `/account/google/start` remembers a random state, PKCE verifier and nonce in a
+   short-lived cookie, then redirects to Google. No Google script loads on our pages.
+2. `/account/google/callback` checks the state, swaps the code for an ID token, and
+   sends it to the ERP, which verifies it and returns a session for a known customer.
+3. A new customer goes to `/account/welcome`. Nothing is saved until they agree to
+   the privacy notice there, when the ERP verifies the token again and creates the
+   account. The name is set here once and never updated from Google, so an approved
+   review's name can't change without a check.
+
+Tests compose workflows with an in-memory `CustomerSource`, `SessionStore`,
+`GoogleProvider` and cookie stores. Playwright uses a fake Google in `e2e/mock-erp.mjs`.
 
 ## Styling
 

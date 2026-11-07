@@ -1,28 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
-import {
-  deleteAccountAction,
-  deleteReviewAction,
-  resendVerificationAction,
-} from "../actions";
+import { deleteAccountAction, deleteReviewAction } from "../actions";
 import { IDLE_FORM_STATE } from "../model";
 import { Field, FormMessage, SubmitButton } from "./form-controls";
-
-export function ResendVerificationForm() {
-  const [state, action] = useActionState(resendVerificationAction, IDLE_FORM_STATE);
-
-  return (
-    <form action={action} className="grid justify-items-start gap-3">
-      <FormMessage state={state} />
-      {state.status === "success" ? null : (
-        <SubmitButton variant="outline" className="text-primary">
-          Send a new confirmation link
-        </SubmitButton>
-      )}
-    </form>
-  );
-}
 
 export function DeleteReviewForm({ reviewId }: { reviewId: number }) {
   const [state, action] = useActionState(
@@ -44,17 +25,19 @@ export function DeleteReviewForm({ reviewId }: { reviewId: number }) {
   );
 }
 
-export function DeleteAccountForm() {
+export function DeleteAccountForm({ email }: { email: string }) {
   const [state, action] = useActionState(deleteAccountAction, IDLE_FORM_STATE);
 
   return (
     <form action={action} className="grid max-w-[360px] gap-3">
       <FormMessage state={state} />
       <Field
-        name="password"
-        label="Confirm your password"
-        type="password"
-        autoComplete="current-password"
+        name="email"
+        label={`Type ${email} to confirm`}
+        type="text"
+        autoComplete="off"
+        autoCapitalize="none"
+        spellCheck={false}
         required
         state={state}
       />

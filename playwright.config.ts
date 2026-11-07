@@ -28,6 +28,11 @@ export default defineConfig({
         ERP_CATALOG_API_TOKEN: "e2e-token",
         ERP_STOREFRONT_API_URL: "http://127.0.0.1:4010/api/v1/storefront",
         NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3100",
+        // A fake Google, served by the mock ERP.
+        GOOGLE_CLIENT_ID: "e2e-google-client",
+        GOOGLE_CLIENT_SECRET: "e2e-google-secret",
+        GOOGLE_AUTHORIZE_URL: "http://127.0.0.1:4010/__google/authorize",
+        GOOGLE_TOKEN_URL: "http://127.0.0.1:4010/__google/token",
         // Off by default. Run with CUSTOMER_REVIEWS_LIVE=true for the launched behaviour.
         CUSTOMER_REVIEWS_LIVE: process.env.CUSTOMER_REVIEWS_LIVE ?? "false",
       },

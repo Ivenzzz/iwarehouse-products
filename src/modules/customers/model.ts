@@ -1,4 +1,3 @@
-export const PASSWORD_MIN_LENGTH = 10;
 export const REVIEW_MIN_LENGTH = 20;
 export const REVIEW_MAX_LENGTH = 2000;
 
@@ -14,7 +13,12 @@ export interface CustomerAccount {
   lastName: string;
   publicName: string;
   email: string;
-  emailVerified: boolean;
+}
+
+/** The ERP decides the real public name; this previews it while someone types. */
+export function previewPublicName(firstName: string, lastName: string): string {
+  const initial = lastName.trim().charAt(0).toUpperCase();
+  return `${firstName.trim()}${initial ? ` ${initial}.` : ""}`;
 }
 
 export type ReviewStatus = "pending" | "approved" | "rejected";
@@ -57,7 +61,6 @@ export interface ReviewInput {
 /** What the "write a review" area of a product page should offer this visitor. */
 export type ReviewComposer =
   | { status: "signed-out" }
-  | { status: "unverified" }
   | { status: "ready"; publicName: string }
   | { status: "reviewed"; review: OwnReview }
   | { status: "unavailable" };
@@ -82,7 +85,22 @@ export type OwnReviewPage =
   | { status: "signed-out" }
   | { status: "not-found" }
   | { status: "unavailable" }
-  | { status: "ready"; account: CustomerAccount; review: OwnReview };
+  | { status: "ready"; review: OwnReview };
+
+/** The one-time screen a new customer sees after Google, before any account exists. */
+export type WelcomePage =
+  | { status: "signed-in" }
+  | { status: "expired" }
+  | { status: "ready"; firstName: string; lastName: string; email: string };
+
+/** Why sign-in sent someone back to the sign-in page. */
+export type SignInProblem =
+  | "cancelled"
+  | "failed"
+  | "unverified"
+  | "busy"
+  | "unavailable"
+  | "expired";
 
 /** The result a form shows after submitting. */
 export type FormState =
@@ -93,4 +111,7 @@ export type FormState =
 export const IDLE_FORM_STATE: FormState = { status: "idle" };
 
 /** Form submissions that need a follow-up navigation rather than a message. */
-export type Submission = FormState | { status: "done" } | { status: "signed-out" };
+export type Submission =
+  | FormState
+  | { status: "done"; next?: string }
+  | { status: "signed-out" };

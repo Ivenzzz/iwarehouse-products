@@ -6,7 +6,6 @@ export const accountDtoSchema = z.object({
   last_name: z.string(),
   public_name: z.string(),
   email: z.string(),
-  email_verified: z.boolean(),
 });
 
 export const ownReviewDtoSchema = z.object({
@@ -19,11 +18,24 @@ export const ownReviewDtoSchema = z.object({
   product: z.object({ id: z.number(), name: z.string(), slug: z.string() }),
 });
 
-export const loginResponseDtoSchema = z.object({
+const signedInDtoSchema = z.object({
+  status: z.literal("signed_in"),
   token: z.string(),
   expires_at: z.string().nullable(),
   account: accountDtoSchema,
 });
+
+export const googleSignInResponseDtoSchema = z.discriminatedUnion("status", [
+  signedInDtoSchema,
+  z.object({
+    status: z.literal("needs_confirmation"),
+    first_name: z.string(),
+    last_name: z.string(),
+    email: z.string(),
+  }),
+]);
+
+export const googleRegisterResponseDtoSchema = signedInDtoSchema;
 
 export const accountResponseDtoSchema = z.object({ data: accountDtoSchema });
 export const ownReviewResponseDtoSchema = z.object({ data: ownReviewDtoSchema });

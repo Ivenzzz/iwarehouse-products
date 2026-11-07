@@ -3,22 +3,10 @@ import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { logoutAction } from "../actions";
 import type { CustomerAccount, OwnReview } from "../model";
-import { DeleteAccountForm, DeleteReviewForm, ResendVerificationForm } from "./account-forms";
+import { DeleteAccountForm, DeleteReviewForm } from "./account-forms";
 import { EditReviewForm } from "./review-form";
 import { formatReviewDate, ReviewStatusBadge } from "./review-status";
 import { Stars } from "./stars";
-
-function VerifyEmailNotice() {
-  return (
-    <div className="mt-6 rounded-card bg-[var(--brand-50)] p-5">
-      <h2 className="m-0 text-base font-bold">Confirm your email to write reviews</h2>
-      <p className="mt-1 mb-3 text-sm text-muted-foreground">
-        We sent you a link when you signed up. It works for 60 minutes.
-      </p>
-      <ResendVerificationForm />
-    </div>
-  );
-}
 
 export function AccountView({
   account,
@@ -38,8 +26,6 @@ export function AccountView({
         </form>
       </div>
 
-      {account.emailVerified ? null : <VerifyEmailNotice />}
-
       <div className="mt-6 rounded-card bg-card p-5 shadow-(--shadow-sm)">
         <h2 className="m-0 text-base font-bold">Your details</h2>
         <dl className="mt-3 mb-0 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-sm">
@@ -53,12 +39,8 @@ export function AccountView({
           <dd className="m-0 font-semibold break-words">{account.publicName}</dd>
         </dl>
         <p className="mt-3 mb-0 text-xs text-muted-foreground">
-          To change your name or email, please contact one of our stores. To change your password,
-          use{" "}
-          <Link href="/account/forgot-password" className="font-semibold text-primary hover:underline">
-            forgot password
-          </Link>
-          .
+          You sign in with Google, and your email comes from your Google account. To change your
+          name, please contact one of our stores.
         </p>
       </div>
 
@@ -108,13 +90,13 @@ export function AccountView({
         <p className="mt-1 mb-3 text-sm text-muted-foreground">
           This permanently deletes your account and all your reviews. It can’t be undone.
         </p>
-        <DeleteAccountForm />
+        <DeleteAccountForm email={account.email} />
       </section>
     </section>
   );
 }
 
-export function OwnReviewView({ review, emailVerified }: { review: OwnReview; emailVerified: boolean }) {
+export function OwnReviewView({ review }: { review: OwnReview }) {
   return (
     <section className="shell py-10 max-[680px]:py-6">
       <div className="mx-auto w-full max-w-[640px]">
@@ -138,13 +120,7 @@ export function OwnReviewView({ review, emailVerified }: { review: OwnReview; em
             </p>
           ) : null}
           <div className="mt-5">
-            {emailVerified ? (
-              <EditReviewForm review={review} />
-            ) : (
-              <p className="m-0 text-sm text-muted-foreground">
-                Please confirm your email address before editing this review.
-              </p>
-            )}
+            <EditReviewForm review={review} />
           </div>
         </div>
         <div className="mt-4 rounded-card bg-card p-6 shadow-(--shadow-sm) max-[680px]:p-5">
