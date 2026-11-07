@@ -1,6 +1,6 @@
 export {
   finishGoogleSignIn,
-  hasCustomerSession,
+  hasLiveCustomerSession,
   loadAccountPage,
   loadOwnReviewPage,
   loadProductReviewsSection,

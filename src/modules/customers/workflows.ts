@@ -136,6 +136,25 @@ export function createCustomerWorkflows(
     }
   }
 
+  /**
+   * A cookie alone proves nothing: its session may have been revoked or the account
+   * deleted. Pages can't remove a stale cookie while rendering, so sign-in has to ask
+   * the ERP here, or it and /account would keep redirecting to each other. During an
+   * outage this says no, so the visitor sees the sign-in page instead of a loop.
+   */
+  async function hasLiveSession(): Promise<boolean> {
+    const token = await session.read();
+    if (!token) return false;
+
+    try {
+      await source.getAccount(token);
+      return true;
+    } catch (error) {
+      if (error instanceof CustomerSourceError) return false;
+      throw error;
+    }
+  }
+
   async function loadComposer(productId: number): Promise<ReviewComposer> {
     const token = await session.read();
     if (!token) return { status: "signed-out" };
@@ -207,7 +226,7 @@ export function createCustomerWorkflows(
     },
 
     async loadWelcomePage(): Promise<WelcomePage> {
-      if (await session.read()) return { status: "signed-in" };
+      if (await hasLiveSession()) return { status: "signed-in" };
 
       const pending = await pendingAccounts.read();
       return pending
@@ -308,9 +327,7 @@ export function createCustomerWorkflows(
       }
     },
 
-    async hasSession(): Promise<boolean> {
-      return (await session.read()) !== null;
-    },
+    hasLiveSession,
 
     /** The cookie always goes, even if the ERP can't be told right now. */
     async logout(): Promise<void> {

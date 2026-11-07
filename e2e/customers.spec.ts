@@ -154,6 +154,26 @@ test("a crafted callback can't sign anyone in", async ({ page }) => {
   await expect(page).toHaveURL(/\/account\/login$/);
 });
 
+test("an old session cookie doesn't lock anyone out of signing in", async ({ page }) => {
+  await page.context().addCookies([
+    { name: "iw_customer_session", value: "1|revoked-token", domain: "127.0.0.1", path: "/" },
+  ]);
+
+  // Both used to bounce between each other until the browser gave up.
+  await page.goto("/account/login");
+  await expect(page.getByRole("link", { name: "Continue with Google" })).toBeVisible();
+
+  await page.goto("/account");
+  await expect(page).toHaveURL(/\/account\/login$/);
+
+  // A new customer can get all the way through, which replaces the old cookie.
+  await continueWithGoogle(page, uniqueEmail());
+  await expect(page).toHaveURL(/\/account\/welcome$/);
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create my account" }).click();
+  await expect(page.getByRole("heading", { name: "Hi, Juan" })).toBeVisible();
+});
+
 test("the welcome screen needs a sign-in in progress", async ({ page }) => {
   await page.goto("/account/welcome");
 

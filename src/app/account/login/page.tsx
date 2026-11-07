@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
-  hasCustomerSession,
+  hasLiveCustomerSession,
   isEmbeddedBrowser,
   safeRedirectPath,
   SignInView,
@@ -28,7 +28,7 @@ export default async function LoginPage({
   const { next, error, deleted } = await searchParams;
   const safeNext = next ? safeRedirectPath(next) : undefined;
 
-  if (await hasCustomerSession()) redirect(safeNext ?? "/account");
+  if (await hasLiveCustomerSession()) redirect(safeNext ?? "/account");
 
   return (
     <SignInView

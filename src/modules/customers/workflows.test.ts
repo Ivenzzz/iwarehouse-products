@@ -321,6 +321,16 @@ describe("confirming a new account", () => {
     ).resolves.toEqual({ status: "signed-in" });
   });
 
+  it("shows the form to a new customer with an old, revoked session cookie", async () => {
+    const source = fakeSource({
+      getAccount: vi.fn().mockRejectedValue(new CustomerSourceError("unauthenticated")),
+    });
+
+    await expect(
+      compose({ source, session: fakeSession("revoked"), pendingAccounts: fakeStore(pending) }).loadWelcomePage(),
+    ).resolves.toMatchObject({ status: "ready" });
+  });
+
   it("creates the account with the chosen name, then signs in and returns them", async () => {
     const session = fakeSession(null);
     const pendingAccounts = fakeStore(pending);
@@ -514,6 +524,30 @@ describe("product page reviews", () => {
 });
 
 describe("accounts", () => {
+  it("only counts a session the ERP still accepts as signed in", async () => {
+    await expect(compose({ session: fakeSession(null) }).hasLiveSession()).resolves.toBe(false);
+    await expect(compose().hasLiveSession()).resolves.toBe(true);
+  });
+
+  // Sign-in sends a signed-in visitor to /account, and /account sends a signed-out
+  // one back. If they disagreed about a cookie, the browser would bounce forever.
+  it.each([
+    ["revoked", "unauthenticated"],
+    ["unconfirmable during an outage", "unavailable"],
+  ] as const)("doesn't count a session that's %s, so sign-in can't loop", async (_, kind) => {
+    const source = fakeSource({
+      getAccount: vi.fn().mockRejectedValue(new CustomerSourceError(kind)),
+    });
+
+    await expect(compose({ source }).hasLiveSession()).resolves.toBe(false);
+  });
+
+  it("does not hide a real programming bug while checking a session", async () => {
+    const source = fakeSource({ getAccount: vi.fn().mockRejectedValue(new TypeError("bug")) });
+
+    await expect(compose({ source }).hasLiveSession()).rejects.toThrow("bug");
+  });
+
   it("signs out locally even when the ERP can't be reached", async () => {
     const session = fakeSession("token");
     const source = fakeSource({

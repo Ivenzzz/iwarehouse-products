@@ -103,5 +103,5 @@ export const loadWelcomePage = workflows.loadWelcomePage;
 export const loadProductReviewsSection = workflows.loadProductReviewsSection;
 export const loadAccountPage = workflows.loadAccountPage;
 export const loadOwnReviewPage = workflows.loadOwnReviewPage;
-export const hasCustomerSession = workflows.hasSession;
+export const hasLiveCustomerSession = workflows.hasLiveSession;
 export const customerWorkflows = workflows;
