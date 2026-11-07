@@ -7,16 +7,12 @@ import {
   HomeCatalogSections,
   HomeNewArrivals,
   loadHomeCatalog,
-  loadStoreLocations,
 } from "@/modules/catalog";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [catalog, stores] = await Promise.all([
-    loadHomeCatalog(),
-    loadStoreLocations(),
-  ]);
+  const catalog = await loadHomeCatalog();
 
   if (catalog.status === "unavailable") {
     return (
@@ -26,7 +22,6 @@ export default async function HomePage() {
     );
   }
 
-  const directory = stores.status === "ready" ? stores.data : null;
   const { newArrivals } = catalog.data;
 
   return (
@@ -77,7 +72,7 @@ export default async function HomePage() {
         {newArrivals ? <HomeNewArrivals products={newArrivals} /> : null}
       </section>
 
-      <HomeCatalogSections catalog={catalog.data} stores={directory} />
+      <HomeCatalogSections catalog={catalog.data} />
     </>
   );
 }

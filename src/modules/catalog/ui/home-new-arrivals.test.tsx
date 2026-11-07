@@ -95,18 +95,13 @@ describe("HomeNewArrivals", () => {
 
 describe("HomeCatalogSections with new arrivals", () => {
   it("doesn't say no products were found when the hero is showing them", () => {
-    render(
-      <HomeCatalogSections
-        catalog={catalog({ newArrivals: pair })}
-        stores={null}
-      />,
-    );
+    render(<HomeCatalogSections catalog={catalog({ newArrivals: pair })} />);
 
     expect(screen.queryByText(/no available products/i)).toBeNull();
   });
 
   it("says no products were found when there's no hero or row", () => {
-    render(<HomeCatalogSections catalog={catalog()} stores={null} />);
+    render(<HomeCatalogSections catalog={catalog()} />);
 
     expect(screen.getByText(/no available products/i)).toBeInTheDocument();
   });
@@ -115,7 +110,6 @@ describe("HomeCatalogSections with new arrivals", () => {
     render(
       <HomeCatalogSections
         catalog={catalog({ newArrivals: pair, rows: [row] })}
-        stores={null}
       />,
     );
 

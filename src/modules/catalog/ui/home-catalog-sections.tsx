@@ -4,12 +4,10 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import type {
   HomeCatalogViewModel,
   HomeProductRow,
-  StoreDirectoryViewModel,
 } from "../model";
 import { resolveHomeCategories } from "./home-categories";
 import { ProductCard } from "./product-card";
 import { ProductGrid } from "./product-grid";
-import { StoreHighlights } from "./store-highlights";
 
 function ProductRow({
   row,
@@ -42,10 +40,8 @@ function ProductRow({
 
 export function HomeCatalogSections({
   catalog,
-  stores,
 }: {
   catalog: HomeCatalogViewModel;
-  stores: StoreDirectoryViewModel | null;
 }) {
   const homeCategories = resolveHomeCategories(catalog.filters.categories);
   const [firstRow, ...otherRows] = catalog.rows;
@@ -86,8 +82,6 @@ export function HomeCatalogSections({
           <ProductGrid products={[]} />
         </section>
       )}
-
-      <StoreHighlights directory={stores} />
 
       {otherRows.map((row) => (
         <ProductRow row={row} priority={false} key={row.id} />
